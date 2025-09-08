@@ -739,22 +739,32 @@
       // PINTAR EVENTOS
       const EVENTS = buildEventsForView();
 
-      for(const ev of EVENTS){
-        const [y, m, d] = ev.date.split('-').map(Number);
-        const evDate = new Date(y, m - 1, d);
+      for (const ev of EVENTS) {
+        // Crear evDate en local de forma robusta (acepta Date, 'YYYY-MM-DD' o 'YYYY-MM-DDTHH:mm')
+        let evDate = null;
+        if (ev.date instanceof Date) {
+          evDate = new Date(ev.date.getFullYear(), ev.date.getMonth(), ev.date.getDate());
+        } else if (typeof ev.date === 'string') {
+          const s = ev.date.slice(0, 10); // nos quedamos con 'YYYY-MM-DD' si venía con hora
+          const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+          if (m) evDate = new Date(+m[1], +m[2] - 1, +m[3]);
+        }
 
-        if(evDate < weekStart || evDate >= weekEnd) continue; // filtra solo semana visible
+        // Si no hay fecha válida, no pintamos (evitamos exceptions)
+        if (!evDate || isNaN(evDate)) continue;
+
+        if (evDate < weekStart || evDate >= weekEnd) continue; // filtra solo semana visible
 
         const dayIdx = (evDate.getDay() + 6) % 7; // 0=Lun .. 6=Dom
         const colIndex = visibleDays.indexOf(dayIdx);
-        if(colIndex === -1) continue; // día oculto (fin de semana)
+        if (colIndex === -1) continue; // día oculto (fin de semana)
 
         // calcular filas con clamp vertical
         const evStartMin = toMinutes(ev.start);
         const evEndMin = toMinutes(ev.end);
         const dayStartMin = dayStart * 60;
         const dayEndMin = dayEnd * 60;
-        if(evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue;
+        if (evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue;
 
         const startClamped = Math.max(evStartMin, dayStartMin);
         const endClamped = Math.min(evEndMin, dayEndMin);
@@ -763,9 +773,9 @@
 
         const el = document.createElement('div');
         let cls = 'event';
-        if(ev.source === 'clase') cls += ' cat-clase';
-        else if(ev.source === 'horario'){
-          if(ev.tuClase) cls += ' tu-clase';
+        if (ev.source === 'clase') cls += ' cat-clase';
+        else if (ev.source === 'horario') {
+          if (ev.tuClase) cls += ' tu-clase';
           else cls += ' alumno-clase';
         }
         el.className = cls;
@@ -774,17 +784,18 @@
 
         // contenido
         let metaExtra = '';
-        if(ev.source === 'clase' && profesor && ev.alumnos && ev.alumnos.length){
+        if (ev.source === 'clase' && profesor && ev.alumnos && ev.alumnos.length) {
           metaExtra = `<div class="meta-small">${ev.alumnos.join(' / ')}</div>`;
         }
-        if(ev.source === 'horario' && profesor){
+        if (ev.source === 'horario' && profesor) {
           metaExtra = `<div class="meta-small">alumno: ${ev.alumno}</div>`;
         }
 
         el.innerHTML = `<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>${metaExtra}`;
         grid.appendChild(el);
+      
+        }
       }
-    }
 
   </script>
 </body>
