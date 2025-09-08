@@ -736,25 +736,23 @@
         }
       }
 
-      // PINTAR EVENTOS (CLASES + HORARIOS filtrados en buildEventsForView)
+      // PINTAR EVENTOS
       const EVENTS = buildEventsForView();
 
       for(const ev of EVENTS){
-        const evDate = new Date(ev.date);  // convertir la fecha del evento a Date
-        if(evDate < weekStart || evDate >= addDays(weekStart, 7)) continue; // filtra solo la semana visible
+        const evDate = new Date(ev.date + 'T00:00'); // aseguramos zona horaria consistente
+        if(evDate < weekStart || evDate >= weekEnd) continue; // filtra solo semana visible
 
-
-        const dayIdx = (evDate.getDay() || 7) - 1; // 0=Lun .. 6=Dom
+        const dayIdx = (evDate.getDay() + 6) % 7; // 0=Lun .. 6=Dom
         const colIndex = visibleDays.indexOf(dayIdx);
         if(colIndex === -1) continue; // día oculto (fin de semana)
-
 
         // calcular filas con clamp vertical
         const evStartMin = toMinutes(ev.start);
         const evEndMin = toMinutes(ev.end);
         const dayStartMin = dayStart * 60;
         const dayEndMin = dayEnd * 60;
-        if(evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue; // fuera de vista
+        if(evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue;
 
         const startClamped = Math.max(evStartMin, dayStartMin);
         const endClamped = Math.min(evEndMin, dayEndMin);
@@ -762,7 +760,6 @@
         const endRow = Math.ceil((endClamped - dayStartMin) / 30) + 2;
 
         const el = document.createElement('div');
-        // clases CSS según tipo
         let cls = 'event';
         if(ev.source === 'clase') cls += ' cat-clase';
         else if(ev.source === 'horario'){
@@ -786,47 +783,6 @@
         grid.appendChild(el);
       }
     }
-
-    // selects de horas y controles
-    function populateHourSelects(){
-      const startSel=document.getElementById('startHour');
-      const endSel=document.getElementById('endHour');
-      startSel.innerHTML=''; endSel.innerHTML='';
-      for(let h=0; h<=23; h++){
-        const opt1=document.createElement('option'); opt1.value=h; opt1.textContent=String(h).padStart(2,'0')+':00'; startSel.appendChild(opt1);
-        const opt2=document.createElement('option'); opt2.value=h; opt2.textContent=String(h).padStart(2,'0')+':00'; endSel.appendChild(opt2);
-      }
-      startSel.value = dayStart;
-      endSel.value = dayEnd;
-      startSel.addEventListener('change', ()=>{
-        const v = parseInt(startSel.value);
-        dayStart = Math.min(v, dayEnd-1);
-        render();
-      });
-      endSel.addEventListener('change', ()=>{
-        const v = parseInt(endSel.value);
-        dayEnd = Math.max(v, dayStart+1);
-        render();
-      });
-    }
-
-    function attachControls(){
-      document.getElementById('prev').addEventListener('click', ()=>{ anchorDate = addDays(anchorDate, -7); render(); });
-      document.getElementById('next').addEventListener('click', ()=>{ anchorDate = addDays(anchorDate, 7); render(); });
-      document.getElementById('today').addEventListener('click', ()=>{ anchorDate = new Date(); render(); });
-      document.getElementById('goDate').addEventListener('change', (e)=>{
-        const d = new Date(e.target.value + 'T00:00');
-        if(!isNaN(d)) { anchorDate = d; render(); }
-      });
-      document.getElementById('toggleWeekend').addEventListener('change', ()=>{ render(); });
-    }
-
-    // init
-    populateHourSelects();
-    attachControls();
-    document.getElementById('goDate').value = fmtDateISO(anchorDate);
-    render();
-    setInterval(()=>{ render(); }, 60*1000);
 
   </script>
 </body>
