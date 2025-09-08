@@ -683,6 +683,7 @@
       else document.getElementById('headerTitle').textContent = "Horario semanal";
 
       const weekStart = startOfWeek(anchorDate);
+      const weekEnd = addDays(weekStart, 7);
       document.getElementById('goDate').value = fmtDateISO(anchorDate);
 
       const showWeekend = document.getElementById('toggleWeekend').checked;
@@ -693,7 +694,12 @@
 
       // HEADER
       dayHeader.innerHTML = '';
-      const empty = document.createElement('div'); empty.className='cell'; empty.style.gridRow=1; empty.style.gridColumn=1; dayHeader.appendChild(empty);
+      const empty = document.createElement('div'); 
+      empty.className='cell'; 
+      empty.style.gridRow=1; 
+      empty.style.gridColumn=1; 
+      dayHeader.appendChild(empty);
+
       for(let i=0;i<visibleDays.length;i++){
         const dayOffset = visibleDays[i];
         const d = addDays(weekStart, dayOffset);
@@ -715,25 +721,29 @@
           const hourCell=document.createElement('div');
           hourCell.className='cell hour';
           hourCell.textContent=String(dayStart + r/2).padStart(2,'0')+':00';
-          hourCell.style.gridRow=`${r+2} / span 2`; hourCell.style.gridColumn=1;
-          hourCell.style.display="flex"; hourCell.style.alignItems="center"; grid.appendChild(hourCell);
+          hourCell.style.gridRow=`${r+2} / span 2`; 
+          hourCell.style.gridColumn=1;
+          hourCell.style.display="flex"; 
+          hourCell.style.alignItems="center"; 
+          grid.appendChild(hourCell);
         }
         for(let c=0;c<visibleDays.length;c++){
-          const slot=document.createElement('div'); slot.className='cell slot';
-          slot.style.gridRow=r+2; slot.style.gridColumn=c+2; grid.appendChild(slot);
+          const slot=document.createElement('div'); 
+          slot.className='cell slot';
+          slot.style.gridRow=r+2; 
+          slot.style.gridColumn=c+2; 
+          grid.appendChild(slot);
         }
       }
 
       // PINTAR EVENTOS (CLASES + HORARIOS filtrados en buildEventsForView)
       const EVENTS = buildEventsForView();
-      const weekStartNum = dayNumber(weekStart);
-      const weekEndNum = dayNumber(addDays(weekStart,7));
-      for(const ev of EVENTS){
-        const evDayNum = dayNumber(ev.date);
-        if(evDayNum < weekStartNum || evDayNum >= weekEndNum) continue;
 
-        const d = new Date(ev.date);
-        const dayIdx = (d.getDay() || 7) - 1; // 0=Mon..6=Sun
+      for(const ev of EVENTS){
+        const evDate = new Date(ev.date);
+        if(evDate < weekStart || evDate >= weekEnd) continue; // filtrar solo semana visible
+
+        const dayIdx = (evDate.getDay() || 7) - 1; // 0=Mon..6=Sun
         const colIndex = visibleDays.indexOf(dayIdx);
         if(colIndex === -1) continue; // día oculto (fin de semana)
 
@@ -802,7 +812,10 @@
       document.getElementById('prev').addEventListener('click', ()=>{ anchorDate = addDays(anchorDate, -7); render(); });
       document.getElementById('next').addEventListener('click', ()=>{ anchorDate = addDays(anchorDate, 7); render(); });
       document.getElementById('today').addEventListener('click', ()=>{ anchorDate = new Date(); render(); });
-      document.getElementById('goDate').addEventListener('change', (e)=>{ const d = new Date(e.target.value + 'T00:00'); if(!isNaN(d)) { anchorDate = d; render(); }});
+      document.getElementById('goDate').addEventListener('change', (e)=>{
+        const d = new Date(e.target.value + 'T00:00');
+        if(!isNaN(d)) { anchorDate = d; render(); }
+      });
       document.getElementById('toggleWeekend').addEventListener('change', ()=>{ render(); });
     }
 
@@ -812,6 +825,7 @@
     document.getElementById('goDate').value = fmtDateISO(anchorDate);
     render();
     setInterval(()=>{ render(); }, 60*1000);
+
   </script>
 </body>
 </html>
