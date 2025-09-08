@@ -740,7 +740,9 @@
       const EVENTS = buildEventsForView();
 
       for(const ev of EVENTS){
-        const evDate = new Date(ev.date + 'T00:00'); // aseguramos zona horaria consistente
+        const [y, m, d] = ev.date.split('-').map(Number);
+        const evDate = new Date(y, m - 1, d);
+
         if(evDate < weekStart || evDate >= weekEnd) continue; // filtra solo semana visible
 
         const dayIdx = (evDate.getDay() + 6) % 7; // 0=Lun .. 6=Dom
