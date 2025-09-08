@@ -57,7 +57,7 @@
   </main>
 
   <script>
-    const CLASES = [
+const CLASES = [
       { date: "2025-09-22", start: "09:00", end: "14:00" },
       { date: "2025-09-23", start: "09:00", end: "14:00" },
       { date: "2025-09-23", start: "20:30", end: "21:30" },
@@ -327,9 +327,7 @@
     let EVENTS = [];
 
     if (profesor) {
-      // Vista de la profesora
       EVENTS = CLASES.map(c => {
-        // Buscar si este bloque tiene asignado algún alumno
         let alumnoAsignado = null;
         for (const nombre in HORARIOS) {
           if (HORARIOS[nombre].some(ev =>
@@ -345,13 +343,9 @@
           title: alumnoAsignado ? "Clase de " + alumnoAsignado : "No disponible"
         };
       });
-
     } else if (alumno && HORARIOS[alumno]) {
-      // Vista de un alumno
       document.getElementById("headerTitle").textContent = "Horario de " + alumno;
-
       EVENTS = CLASES.map(c => {
-        // Ver si este alumno tiene clase en este bloque
         const tieneClase = HORARIOS[alumno].some(ev =>
           ev.date === c.date &&
           ev.start >= c.start && ev.end <= c.end
@@ -362,13 +356,8 @@
           tuClase: tieneClase
         };
       });
-
     } else {
-      // Si no hay rol definido
-      EVENTS = CLASES.map(c => ({
-        ...c,
-        title: "No disponible"
-      }));
+      EVENTS = CLASES.map(c => ({ ...c, title: "No disponible" }));
     }
 
     let dayStart=8, dayEnd=22;
@@ -436,34 +425,29 @@
     function populateHourSelects(){
       const startSel=document.getElementById('startHour');
       const endSel=document.getElementById('endHour');
+      startSel.innerHTML=''; endSel.innerHTML='';
       for(let h=0;h<=23;h++){
         const opt1=document.createElement('option'); opt1.value=h; opt1.textContent=String(h).padStart(2,'0')+':00'; startSel.appendChild(opt1);
         const opt2=document.createElement('option'); opt2.value=h; opt2.textContent=String(h).padStart(2,'0')+':00'; endSel.appendChild(opt2);
       }
       startSel.value=dayStart; endSel.value=dayEnd;
-      startSel.addEventListener('change',()=>{ dayStart=Math.min(Number(startSel.value),dayEnd-1); render(); });
-      endSel.addEventListener('change',()=>{ dayEnd=Math.max(Number(endSel.value),dayStart+1); render(); });
+      startSel.addEventListener('change',()=>{ dayStart=parseInt(startSel.value); render(anchorDate); });
+      endSel.addEventListener('change',()=>{ dayEnd=parseInt(endSel.value); render(anchorDate); });
     }
 
-    function attachControls(){
-      document.getElementById('prev').addEventListener('click',()=>{ anchorDate=addDays(anchorDate,-7); render(); });
-      document.getElementById('next').addEventListener('click',()=>{ anchorDate=addDays(anchorDate,7); render(); });
-      document.getElementById('today').addEventListener('click',()=>{ anchorDate=new Date(); render(); });
-      document.getElementById('goDate').addEventListener('change',(e)=>{ const d=new Date(e.target.value+'T00:00'); if(!isNaN(d)){ anchorDate=d; render(); } });
-      document.getElementById('toggleWeekend').addEventListener('change',()=>{ render(); });
-    }
-
-    function render(){
-      const weekStart=startOfWeek(anchorDate);
+    function render(date){
+      const weekStart=startOfWeek(date);
       renderHeader(weekStart);
       renderGrid(weekStart);
-      document.getElementById('goDate').value=fmtDateISO(anchorDate);
     }
 
+    document.getElementById('prev').onclick=()=>{ anchorDate=addDays(anchorDate,-7); render(anchorDate); };
+    document.getElementById('next').onclick=()=>{ anchorDate=addDays(anchorDate,7); render(anchorDate); };
+    document.getElementById('today').onclick=()=>{ anchorDate=new Date(); render(anchorDate); };
+    document.getElementById('goDate').onchange=(e)=>{ anchorDate=new Date(e.target.value); render(anchorDate); };
+
     populateHourSelects();
-    attachControls();
-    render();
-    setInterval(render,60*1000);
+    render(anchorDate);
   </script>
 </body>
 </html>
