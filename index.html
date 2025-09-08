@@ -394,8 +394,9 @@
       }
 
       for(const ev of EVENTS){
-        const evDate=new Date(ev.date+"T00:00");
-        if(evDate >= weekStart && evDate < addDays(weekStart,7)){
+        const evDate = new Date(ev.date+"T12:00");
+        const diffDays = (evDate - weekStart) / (1000*60*60*24);
+        if(diffDays >= 0 && diffDays < 7){
           const dayIdx=(evDate.getDay()||7)-1;
           const startRow=Math.floor((toMinutes(ev.start)-dayStart*60)/30)+2;
           const endRow=Math.ceil((toMinutes(ev.end)-dayStart*60)/30)+2;
