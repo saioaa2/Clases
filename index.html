@@ -6,37 +6,150 @@
   <title>Horario semanal</title>
   <style>
     :root {
-      --bg: #f9f7fb;
-      --primary: #7c3aed;
-      --primary-light: #a78bfa;
-      --secondary: #c4b5fd;
+      --bg: #f3f4f6;           /* fondo general */
+      --primary: #2563eb;      /* azul principal */
+      --primary-light: #3b82f6;
+      --secondary: #e0f2fe;    /* azul clarito para hoy */
       --muted: #6b7280;
       --line: #e5e7eb;
+      --event-student: #10b981;   /* verde */
+      --event-own: #f59e0b;       /* naranja */
+      --event-other: #8b5cf6;     /* violeta */
     }
 
-    body { margin:0; font-family:"Segoe UI", Roboto, sans-serif; background:var(--bg); color:#1f1f1f; }
-    header { background:white; border-bottom:1px solid var(--line); padding:1rem; box-shadow:0 2px 4px rgba(0,0,0,.05); }
-    header h1 { margin:0; font-size:1.6rem; color:var(--primary); }
-    header .controls { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin-top:.5rem; }
-    header button { background:var(--primary); color:white; border:none; padding:.4rem .8rem; border-radius:.5rem; cursor:pointer; font-weight:500; }
-    header button:hover { background:var(--primary-light); }
-    header input, header select { border:1px solid var(--line); border-radius:.4rem; padding:.2rem .4rem; }
+    body {
+      margin:0;
+      font-family:"Inter", "Segoe UI", Roboto, sans-serif;
+      background:var(--bg);
+      color:#111827;
+    }
 
-    .calendar { display:grid; grid-template-columns:80px repeat(7, 1fr); grid-template-rows:40px auto; overflow-x:auto; gap:0; }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background:white;
+      border-bottom:1px solid var(--line);
+      padding:1rem 1.5rem;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+
+    header h1 {
+      margin:0;
+      font-size:1.8rem;
+      font-weight:700;
+      color:var(--primary);
+    }
+
+    header .controls {
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:.75rem 1rem;
+      margin-top:.75rem;
+    }
+
+    header button {
+      background:var(--primary);
+      color:white;
+      border:none;
+      padding:.5rem 1rem;
+      border-radius:.5rem;
+      cursor:pointer;
+      font-weight:500;
+      transition: background .2s ease;
+    }
+
+    header button:hover {
+      background:var(--primary-light);
+    }
+
+    header input, header select {
+      border:1px solid var(--line);
+      border-radius:.4rem;
+      padding:.3rem .5rem;
+      font-size:.9rem;
+    }
+
+    .calendar {
+      display:grid;
+      grid-template-columns:80px repeat(7, 1fr);
+      grid-template-rows:50px auto;
+      overflow-x:auto;
+      background:white;
+      border:1px solid var(--line);
+      border-radius:.75rem;
+      margin:1rem;
+      box-shadow:0 4px 10px rgba(0,0,0,.05);
+    }
+
     .day-header { display:contents; }
-    .day-header .cell { padding:.5rem; text-align:center; font-weight:500; border-bottom:1px solid var(--line); background:transparent; }
-    .day-header .today { background:var(--secondary); border-radius:.5rem; }
+
+    .day-header .cell {
+      padding:.75rem .25rem;
+      text-align:center;
+      font-weight:600;
+      font-size:.95rem;
+      border-bottom:1px solid var(--line);
+      color:#374151;
+    }
+
+    .day-header .today {
+      background:var(--secondary);
+      border-radius:.5rem;
+      color:#1e3a8a;
+    }
+
     .grid { display:contents; }
-    .grid .cell { border:1px solid var(--line); box-sizing:border-box; background:white; }
-    .grid .hour { text-align:right; padding-right:.5rem; font-size:.8rem; color:var(--muted); background:transparent; }
-    .event { padding:.3rem .4rem; border-radius:.6rem; color:white; font-size:.85rem; box-shadow:0 2px 6px rgba(0,0,0,.12); overflow:hidden; display:flex; flex-direction:column; justify-content:center; }
-    .event .title { font-weight:600; margin-bottom:4px; text-transform:capitalize; }
-    .event .meta { font-size:.75rem; opacity:.95; }
-    .cat-clase { background: var(--primary); }
-    .tu-clase { background: #f59e0b; color: #1a1200; }
-    .alumno-clase { background: #06b6d4; }
-    .meta-small { font-size:.7rem; opacity:.9; color: #fff; margin-top:4px; }
+
+    .grid .cell {
+      border:1px solid var(--line);
+      box-sizing:border-box;
+      background:#fff;
+    }
+
+    .grid .hour {
+      text-align:right;
+      padding-right:.5rem;
+      font-size:.8rem;
+      color:var(--muted);
+      background:#f9fafb;
+      font-weight:500;
+    }
+
+    .event {
+      padding:.4rem .5rem;
+      border-radius:.6rem;
+      font-size:.85rem;
+      box-shadow:0 2px 6px rgba(0,0,0,.1);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      animation: fadeIn .4s ease;
+    }
+
+    .event .title {
+      font-weight:600;
+      margin-bottom:3px;
+    }
+
+    .event .meta {
+      font-size:.75rem;
+      opacity:.9;
+    }
+
+    /* Colores de eventos */
+    .cat-clase { background: linear-gradient(135deg, var(--event-other), #a78bfa); color:white; }
+    .tu-clase { background: linear-gradient(135deg, var(--event-own), #fcd34d); color:#1f2937; }
+    .alumno-clase { background: linear-gradient(135deg, var(--event-student), #34d399); color:white; }
+
+    @keyframes fadeIn {
+      from { opacity:0; transform: translateY(5px); }
+      to { opacity:1; transform: translateY(0); }
+    }
   </style>
+
 </head>
 <body>
   <header>
