@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Horario semanal</title>
+  <style>
+    :root {
+      --bg: #f9f7fb;
+      --primary: #7c3aed;
+      --primary-light: #a78bfa;
+      --secondary: #c4b5fd;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+    }
+
+    body { margin:0; font-family:"Segoe UI", Roboto, sans-serif; background:var(--bg); color:#1f1f1f; }
+    header { background:white; border-bottom:1px solid var(--line); padding:1rem; box-shadow:0 2px 4px rgba(0,0,0,.05); }
+    header h1 { margin:0; font-size:1.6rem; color:var(--primary); }
+    header .controls { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin-top:.5rem; }
+    header button { background:var(--primary); color:white; border:none; padding:.4rem .8rem; border-radius:.5rem; cursor:pointer; font-weight:500; }
+    header button:hover { background:var(--primary-light); }
+    header input, header select { border:1px solid var(--line); border-radius:.4rem; padding:.2rem .4rem; }
+
+    .calendar { display:grid; grid-template-columns:80px repeat(7, 1fr); grid-template-rows:40px auto; overflow-x:auto; }
+    .day-header { display:contents; }
+    .day-header .cell { padding:.5rem; text-align:center; font-weight:500; border-bottom:1px solid var(--line); }
+    .day-header .today { background:var(--secondary); border-radius:.5rem; }
+    .grid { display:contents; }
+    .grid .cell { border:1px solid var(--line); box-sizing:border-box; }
+    .grid .hour { text-align:right; padding-right:.5rem; font-size:.8rem; color:var(--muted); }
+    .event { padding:.3rem .4rem; border-radius:.6rem; color:white; font-size:.85rem; box-shadow:0 2px 6px rgba(0,0,0,.15); overflow:hidden; }
+    .event .title { font-weight:600; margin-bottom:2px; }
+    .event .meta { font-size:.75rem; opacity:.9; }
+    .cat-clase { background: var(--primary); }
+    .now-line { height:2px; background:red; grid-column:2 / -1; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="headerTitle">Horario semanal</h1>
+    <div class="controls">
+      <button id="prev">◀ Semana anterior</button>
+      <button id="today">Hoy</button>
+      <button id="next">Semana siguiente ▶</button>
+      <label>Ir a fecha <input id="goDate" type="date" /></label>
+      <label>Inicio <select id="startHour"></select></label>
+      <label>Fin <select id="endHour"></select></label>
+      <label><input id="toggleWeekend" type="checkbox" checked /> Mostrar fin de semana</label>
+    </div>
+  </header>
+
+  <main class="calendar">
+    <div id="dayHeader" class="day-header"></div>
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <script>
+    const CLASES = [
+      { date: "2025-09-16", start: "16:00", end: "17:30" },
+      { date: "2025-09-22", start: "09:00", end: "14:00" },
+      { date: "2025-09-23", start: "09:00", end: "14:00" },
+      { date: "2025-09-23", start: "16:00", end: "17:30" },
+      { date: "2025-09-23", start: "20:30", end: "21:30" },
+      { date: "2025-09-24", start: "09:00", end: "14:00" },
+      { date: "2025-09-24", start: "15:00", end: "18:30" },
+      { date: "2025-09-25", start: "09:00", end: "14:00" },
+      { date: "2025-09-25", start: "15:00", end: "18:30" },
+      { date: "2025-09-25", start: "20:00", end: "21:30" },
+      { date: "2025-09-26", start: "09:00", end: "14:00" }
+    ];
+
+    const HORARIOS = {
+      noa: [
+        { date: "2025-09-16", start: "16:00", end: "17:30" },
+        { date: "2025-09-23", start: "16:00", end: "17:30" },
+        { date: "2025-09-30", start: "16:00", end: "17:30" },
+        { date: "2025-10-07", start: "16:00", end: "17:30" },
+        { date: "2025-10-14", start: "16:00", end: "17:30" },
+        { date: "2025-10-21", start: "16:00", end: "17:30" },
+        { date: "2025-10-28", start: "16:00", end: "17:30" },
+        { date: "2025-11-04", start: "16:00", end: "17:30" },
+        { date: "2025-11-25", start: "16:00", end: "17:30" },
+        { date: "2025-12-09", start: "16:00", end: "17:30" },
+        { date: "2025-12-16", start: "16:00", end: "17:30" },
+        { date: "2026-01-13", start: "16:00", end: "17:30" },
+        { date: "2026-01-27", start: "16:00", end: "17:30" },
+        { date: "2026-03-17", start: "16:00", end: "17:30" },
+        { date: "2026-03-24", start: "16:00", end: "17:30" },
+        { date: "2026-04-14", start: "16:00", end: "17:30" },
+        { date: "2026-04-21", start: "16:00", end: "17:30" },
+        { date: "2026-04-28", start: "16:00", end: "17:30" },
+        { date: "2026-05-05", start: "16:00", end: "17:30" },
+        { date: "2026-05-12", start: "16:00", end: "17:30" },
+        { date: "2026-05-19", start: "16:00", end: "17:30" },
+        { date: "2026-05-26", start: "16:00", end: "17:30" }
+      ],
+      ana: [
+        { date: "2025-09-23", start: "16:00", end: "17:30" },
+        { date: "2025-09-24", start: "15:00", end: "18:30" }
+      ]
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const alumno = params.get("alumno");
+    const profesor = alumno === "profesora";
+
+    let EVENTS = [];
+    if(profesor){
+      EVENTS = CLASES.map(c => ({...c, title:"Clase"}));
+    } else if(alumno && HORARIOS[alumno]){
+      document.getElementById("headerTitle").textContent = "Horario de " + alumno;
+      EVENTS = CLASES.map(c => {
+        const pertenece = HORARIOS[alumno].some(ev => ev.date===c.date && ev.start===c.start && ev.end===c.end);
+        return {...c, title: pertenece ? "Tu clase" : "No disponible"};
+      });
+    } else {
+      EVENTS = CLASES.map(c => ({...c, title:"No disponible"}));
+    }
+
+    let dayStart = 8;
+    let dayEnd = 22;
+    const DAY_NAMES = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+    const dayHeader = document.getElementById('dayHeader');
+    const grid = document.getElementById('grid');
+    let anchorDate = new Date();
+
+    function startOfWeek(date){
+      const d = new Date(date);
+      const day = (d.getDay() || 7);
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() - (day-1));
+      return d;
+    }
+    function addDays(date, n){ const d = new Date(date); d.setDate(d.getDate()+n); return d; }
+    function fmtDateISO(d){ return d.toISOString().slice(0,10); }
+    function toMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
+    function isToday(d){ const t=new Date(); return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate(); }
+
+    function renderHeader(weekStart){
+      dayHeader.innerHTML='';
+      const empty = document.createElement('div');
+      empty.className='cell'; empty.style.gridRow=1; empty.style.gridColumn=1; dayHeader.appendChild(empty);
+      for(let i=0;i<7;i++){
+        const d=addDays(weekStart,i);
+        const cell=document.createElement('div');
+        cell.className='cell '+(isToday(d)?'today':'');
+        cell.style.gridRow=1; cell.style.gridColumn=i+2;
+        cell.innerHTML=`<div>${DAY_NAMES[i]}</div><small>${d.toLocaleDateString(undefined,{day:'2-digit',month:'short'})}</small>`;
+        dayHeader.appendChild(cell);
+      }
+    }
+
+    function renderGrid(weekStart){
+      grid.innerHTML='';
+      const totalRows=(dayEnd-dayStart)*2;
+      grid.style.gridTemplateRows=`repeat(${totalRows},30px)`;
+      for(let r=0;r<totalRows;r++){
+        if(r%2===0){
+          const hourCell=document.createElement('div');
+          hourCell.className='cell hour';
+          hourCell.textContent=String(dayStart+r/2).padStart(2,'0')+':00';
+          hourCell.style.gridRow=`${r+2} / span 2`;
+          hourCell.style.gridColumn=1;
+          hourCell.style.display="flex";
+          hourCell.style.alignItems="center";
+          grid.appendChild(hourCell);
+        }
+        for(let c=0;c<7;c++){
+          const slot=document.createElement('div');
+          slot.className='cell slot';
+          slot.style.gridRow=r+2; slot.style.gridColumn=c+2;
+          grid.appendChild(slot);
+        }
+      }
+
+      for(const ev of EVENTS){
+        const evDate = new Date(ev.date + "T00:00");
+        if(evDate >= weekStart && evDate < addDays(weekStart,7)){
+          const dayIdx=(evDate.getDay()||7)-1;
+          const startRow=Math.floor((toMinutes(ev.start)-dayStart*60)/30)+2;
+          const endRow=Math.ceil((toMinutes(ev.end)-dayStart*60)/30)+2;
+          const el=document.createElement('div');
+          el.className='event cat-clase';
+          el.style.gridColumn=dayIdx+2; el.style.gridRow=`${startRow} / ${endRow}`;
+          el.innerHTML=`<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>`;
+          grid.appendChild(el);
+        }
+      }
+    }
+
+    function populateHourSelects(){
+      const startSel=document.getElementById('startHour');
+      const endSel=document.getElementById('endHour');
+      for(let h=0;h<=23;h++){
+        const opt1=document.createElement('option'); opt1.value=h; opt1.textContent=String(h).padStart(2,'0')+':00'; startSel.appendChild(opt1);
+        const opt2=document.createElement('option'); opt2.value=h; opt2.textContent=String(h).padStart(2,'0')+':00'; endSel.appendChild(opt2);
+      }
+      startSel.value=dayStart; endSel.value=dayEnd;
+      startSel.addEventListener('change',()=>{ dayStart=Math.min(Number(startSel.value),dayEnd-1); render(); });
+      endSel.addEventListener('change',()=>{ dayEnd=Math.max(Number(endSel.value),dayStart+1); render(); });
+    }
+
+    function attachControls(){
+      document.getElementById('prev').addEventListener('click',()=>{ anchorDate=addDays(anchorDate,-7); render(); });
+      document.getElementById('next').addEventListener('click',()=>{ anchorDate=addDays(anchorDate,7); render(); });
+      document.getElementById('today').addEventListener('click',()=>{ anchorDate=new Date(); render(); });
+      document.getElementById('goDate').addEventListener('change',(e)=>{ const d=new Date(e.target.value+'T00:00'); if(!isNaN(d)){ anchorDate=d; render(); } });
+      document.getElementById('toggleWeekend').addEventListener('change',()=>{ render(); });
+    }
+
+    function render(){
+      const weekStart=startOfWeek(anchorDate);
+      renderHeader(weekStart);
+      renderGrid(weekStart);
+      document.getElementById('goDate').value=fmtDateISO(anchorDate);
+    }
+
+    populateHourSelects();
+    attachControls();
+    render();
+    setInterval(render,60*1000);
+  </script>
+</body>
+</html>
+
