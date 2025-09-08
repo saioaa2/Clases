@@ -22,19 +22,19 @@
     header button:hover { background:var(--primary-light); }
     header input, header select { border:1px solid var(--line); border-radius:.4rem; padding:.2rem .4rem; }
 
-    .calendar { display:grid; grid-template-columns:80px repeat(7, 1fr); grid-template-rows:40px auto; overflow-x:auto; }
+    .calendar { display:grid; grid-template-columns:80px repeat(7, 1fr); grid-template-rows:40px auto; overflow-x:auto; gap:0; }
     .day-header { display:contents; }
-    .day-header .cell { padding:.5rem; text-align:center; font-weight:500; border-bottom:1px solid var(--line); }
+    .day-header .cell { padding:.5rem; text-align:center; font-weight:500; border-bottom:1px solid var(--line); background:transparent; }
     .day-header .today { background:var(--secondary); border-radius:.5rem; }
     .grid { display:contents; }
-    .grid .cell { border:1px solid var(--line); box-sizing:border-box; }
-    .grid .hour { text-align:right; padding-right:.5rem; font-size:.8rem; color:var(--muted); }
-    .event { padding:.3rem .4rem; border-radius:.6rem; color:white; font-size:.85rem; box-shadow:0 2px 6px rgba(0,0,0,.15); overflow:hidden; }
-    .event .title { font-weight:600; margin-bottom:2px; }
-    .event .meta { font-size:.75rem; opacity:.9; }
+    .grid .cell { border:1px solid var(--line); box-sizing:border-box; background:white; }
+    .grid .hour { text-align:right; padding-right:.5rem; font-size:.8rem; color:var(--muted); background:transparent; }
+    .event { padding:.3rem .4rem; border-radius:.6rem; color:white; font-size:.85rem; box-shadow:0 2px 6px rgba(0,0,0,.15); overflow:hidden; display:flex; flex-direction:column; justify-content:center; }
+    .event .title { font-weight:600; margin-bottom:2px; text-transform:capitalize; }
+    .event .meta { font-size:.75rem; opacity:.95; }
     .cat-clase { background: var(--primary); }
-    .tu-clase { background: #f59e0b; } 
-    .now-line { height:2px; background:red; grid-column:2 / -1; }
+    .tu-clase { background: #f59e0b; color: #1a1200; }
+    .meta-small { font-size:.7rem; opacity:.9; }
   </style>
 </head>
 <body>
@@ -51,13 +51,17 @@
     </div>
   </header>
 
-  <main class="calendar">
+  <main class="calendar" id="calendarRoot">
     <div id="dayHeader" class="day-header"></div>
     <div id="grid" class="grid"></div>
   </main>
 
   <script>
-const CLASES = [
+    /* -------------------------
+       Aquí van tus arrays (mismo formato que antes).
+       Los he copiado del ejemplo que mandaste (puedes sustituir por tu versión completa).
+       ------------------------- */
+    const CLASES = [
       { date: "2025-09-22", start: "09:00", end: "14:00" },
       { date: "2025-09-23", start: "09:00", end: "14:00" },
       { date: "2025-09-23", start: "20:30", end: "21:30" },
@@ -319,135 +323,299 @@ const CLASES = [
     };
 
     const params = new URLSearchParams(window.location.search);
-    const alumno = params.get("alumno");
+    const alumno = params.get("alumno");              // e.g. "noa" o "profesora"
     const profesor = alumno === "profesora";
 
-    function dayNumber(d){ const date=new Date(d); return date.getFullYear()*10000+(date.getMonth()+1)*100+date.getDate(); }
-
-    let EVENTS = [];
-
-    if (profesor) {
-      EVENTS = CLASES.map(c => {
-        let alumnoAsignado = null;
-        for (const nombre in HORARIOS) {
-          if (HORARIOS[nombre].some(ev =>
-            ev.date === c.date &&
-            ev.start >= c.start && ev.end <= c.end
-          )) {
-            alumnoAsignado = nombre;
-            break;
-          }
-        }
-        return {
-          ...c,
-          title: alumnoAsignado ? "Clase de " + alumnoAsignado : "No disponible"
-        };
-      });
-    } else if (alumno && HORARIOS[alumno]) {
-      document.getElementById("headerTitle").textContent = "Horario de " + alumno;
-      EVENTS = CLASES.map(c => {
-        const tieneClase = HORARIOS[alumno].some(ev =>
-          ev.date === c.date &&
-          ev.start >= c.start && ev.end <= c.end
-        );
-        return {
-          ...c,
-          title: tieneClase ? "Tu clase" : "No disponible",
-          tuClase: tieneClase
-        };
-      });
-    } else {
-      EVENTS = CLASES.map(c => ({ ...c, title: "No disponible" }));
-    }
-
-    let dayStart=8, dayEnd=22;
-    const DAY_NAMES=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-    const dayHeader=document.getElementById('dayHeader');
-    const grid=document.getElementById('grid');
-    let anchorDate=new Date();
-
-    function startOfWeek(date){ const d=new Date(date); const day=(d.getDay()||7); d.setHours(0,0,0,0); d.setDate(d.getDate()- (day-1)); return d; }
+    // utilidades
+    function toMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60 + m; }
+    function dayNumber(d){ const date=new Date(d); return date.getFullYear()*10000 + (date.getMonth()+1)*100 + date.getDate(); }
     function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+    function startOfWeek(date){ const d=new Date(date); const day=(d.getDay()||7); d.setHours(0,0,0,0); d.setDate(d.getDate()- (day-1)); return d; }
     function fmtDateISO(d){ return d.toISOString().slice(0,10); }
-    function toMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
     function isToday(d){ const t=new Date(); return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate(); }
 
-    function renderHeader(weekStart){
-      dayHeader.innerHTML='';
-      const empty=document.createElement('div'); empty.className='cell'; empty.style.gridRow=1; empty.style.gridColumn=1; dayHeader.appendChild(empty);
-      for(let i=0;i<7;i++){
-        const d=addDays(weekStart,i);
-        const cell=document.createElement('div');
-        cell.className='cell '+(isToday(d)?'today':'');
-        cell.style.gridRow=1; cell.style.gridColumn=i+2;
-        cell.innerHTML=`<div>${DAY_NAMES[i]}</div><small>${d.toLocaleDateString(undefined,{day:'2-digit',month:'short'})}</small>`;
+    // Devuelve true si dos eventos del mismo día se solapan
+    function overlaps(a, b){
+      if(a.date !== b.date) return false;
+      const a0 = toMinutes(a.start), a1 = toMinutes(a.end);
+      const b0 = toMinutes(b.start), b1 = toMinutes(b.end);
+      return a0 < b1 && b0 < a1;
+    }
+
+    // Construye EVENTS a partir de CLASES: para cada bloque de la profe calculamos qué alumnos (si alguno) se solapan
+    function buildEventsForView(){
+      return CLASES.map(c => {
+        // buscar alumnos que tengan alguna clase que se solape con este bloque c
+        const alumnos = [];
+        for(const nombre in HORARIOS){
+          const lista = HORARIOS[nombre];
+          if(lista.some(ev => overlaps(ev, c))){
+            alumnos.push(nombre);
+          }
+        }
+
+        let title = "No disponible";
+        let tuClase = false;
+        if(profesor){
+          title = alumnos.length ? "Clase de " + alumnos.join(" / ") : "No disponible";
+        } else if(alumno && HORARIOS[alumno]){
+          tuClase = alumnos.includes(alumno);
+          title = tuClase ? "Tu clase" : "No disponible";
+        } else {
+          title = "No disponible";
+        }
+
+        return {
+          ...c,
+          title,
+          tuClase,
+          alumnos
+        };
+      });
+    }
+
+    // SETTINGS
+    let dayStart = 8, dayEnd = 22; // horas mostradas
+    const DAY_NAMES = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+    const dayHeader = document.getElementById('dayHeader');
+    const grid = document.getElementById('grid');
+    const calendarRoot = document.getElementById('calendarRoot');
+    let anchorDate = new Date();
+
+    // render header (días visibles según toggle weekend)
+    function renderHeader(weekStart, visibleDays){
+      dayHeader.innerHTML = '';
+      // primera celda vacía (columna de horas)
+      const empty = document.createElement('div');
+      empty.className = 'cell';
+      empty.style.gridRow = 1;
+      empty.style.gridColumn = 1;
+      dayHeader.appendChild(empty);
+
+      for(let i=0;i<visibleDays.length;i++){
+        const dayOffset = visibleDays[i]; // 0 = lunes, 6 = domingo
+        const d = addDays(weekStart, dayOffset);
+        const cell = document.createElement('div');
+        cell.className = 'cell ' + (isToday(d) ? 'today' : '');
+        cell.style.gridRow = 1;
+        cell.style.gridColumn = i+2; // +1 por la columna de horas
+        cell.innerHTML = `<div>${DAY_NAMES[dayOffset]}</div><small>${d.toLocaleDateString(undefined,{day:'2-digit',month:'short'})}</small>`;
         dayHeader.appendChild(cell);
       }
     }
 
     function renderGrid(weekStart){
-      grid.innerHTML='';
-      const totalRows=(dayEnd-dayStart)*2;
-      grid.style.gridTemplateRows=`repeat(${totalRows},30px)`;
+      grid.innerHTML = '';
+
+      // decidir días visibles
+      const showWeekend = document.getElementById('toggleWeekend').checked;
+      const visibleDays = showWeekend ? [0,1,2,3,4,5,6] : [0,1,2,3,4];
+
+      // ajustar grid-template-columns del calendario para que las columnas se adapten al número de días visibles
+      calendarRoot.style.gridTemplateColumns = `80px repeat(${visibleDays.length}, 1fr)`;
+
+      const totalRows = (dayEnd - dayStart) * 2; // cada media hora es una fila
+      grid.style.gridTemplateRows = `repeat(${totalRows},30px)`;
+
+      // crear celdas horarias y slots
+      for(let r=0;r<totalRows;r++){
+        if(r%2===0){
+          const hourCell = document.createElement('div');
+          hourCell.className = 'cell hour';
+          hourCell.textContent = String(dayStart + r/2).padStart(2,'0') + ':00';
+          hourCell.style.gridRow = `${r+2} / span 2`;
+          hourCell.style.gridColumn = 1;
+          hourCell.style.display = "flex";
+          hourCell.style.alignItems = "center";
+          grid.appendChild(hourCell);
+        }
+        for(let c=0;c<visibleDays.length;c++){
+          const slot = document.createElement('div');
+          slot.className = 'cell slot';
+          slot.style.gridRow = r+2;
+          slot.style.gridColumn = c+2;
+          grid.appendChild(slot);
+        }
+      }
+
+      // obtener eventos (solo los bloques CLASES, con título ya calculado)
+      const EVENTS = buildEventsForView();
+
+      // rango de semana en números para filtrar
+      const weekStartNum = dayNumber(weekStart);
+      const weekEndNum = dayNumber(addDays(weekStart, 7));
+
+      for(const ev of EVENTS){
+        const evDayNum = dayNumber(ev.date);
+        if(evDayNum < weekStartNum || evDayNum >= weekEndNum) continue;
+
+        const d = new Date(ev.date);
+        const dayIdx = (d.getDay() || 7) - 1; // 0 = lunes ... 6 = domingo
+        const colIndex = visibleDays.indexOf(dayIdx);
+        if(colIndex === -1) continue; // día no visible (fin de semana oculto)
+
+        // calcular filas (clamp a la ventana visual)
+        const evStartMin = toMinutes(ev.start);
+        const evEndMin = toMinutes(ev.end);
+        const dayStartMin = dayStart * 60;
+        const dayEndMin = dayEnd * 60;
+
+        // si el evento está completamente fuera de la vista vertical, saltar
+        if(evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue;
+
+        const startClamped = Math.max(evStartMin, dayStartMin);
+        const endClamped = Math.min(evEndMin, dayEndMin);
+
+        const startRow = Math.floor((startClamped - dayStartMin) / 30) + 2;
+        const endRow = Math.ceil((endClamped - dayStartMin) / 30) + 2;
+
+        const el = document.createElement('div');
+        el.className = 'event cat-clase';
+        if(!profesor && ev.tuClase) el.className += ' tu-clase';
+        el.style.gridColumn = (colIndex + 2); // +1 por columna horas, +1 porque columnas empiezan en 1
+        el.style.gridRow = `${startRow} / ${endRow}`;
+        const alumnosMeta = (profesor && ev.alumnos && ev.alumnos.length) ? `<div class="meta-small">${ev.alumnos.join(' / ')}</div>` : '';
+        el.innerHTML = `<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>${alumnosMeta}`;
+        grid.appendChild(el);
+      }
+    }
+
+    // selects hora
+    function populateHourSelects(){
+      const startSel=document.getElementById('startHour');
+      const endSel=document.getElementById('endHour');
+      startSel.innerHTML=''; endSel.innerHTML='';
+      for(let h=0; h<=23; h++){
+        const opt1=document.createElement('option'); opt1.value=h; opt1.textContent=String(h).padStart(2,'0')+':00'; startSel.appendChild(opt1);
+        const opt2=document.createElement('option'); opt2.value=h; opt2.textContent=String(h).padStart(2,'0')+':00'; endSel.appendChild(opt2);
+      }
+      startSel.value = dayStart;
+      endSel.value = dayEnd;
+      startSel.addEventListener('change', ()=>{
+        const v = parseInt(startSel.value);
+        dayStart = Math.min(v, dayEnd-1);
+        render();
+      });
+      endSel.addEventListener('change', ()=>{
+        const v = parseInt(endSel.value);
+        dayEnd = Math.max(v, dayStart+1);
+        render();
+      });
+    }
+
+    // controles
+    function attachControls(){
+      document.getElementById('prev').addEventListener('click', ()=>{ anchorDate = addDays(anchorDate, -7); render(); });
+      document.getElementById('next').addEventListener('click', ()=>{ anchorDate = addDays(anchorDate, 7); render(); });
+      document.getElementById('today').addEventListener('click', ()=>{ anchorDate = new Date(); render(); });
+      document.getElementById('goDate').addEventListener('change', (e)=>{ const d = new Date(e.target.value + 'T00:00'); if(!isNaN(d)) { anchorDate = d; render(); }});
+      document.getElementById('toggleWeekend').addEventListener('change', ()=>{ render(); });
+    }
+
+    // render principal
+    function render(){
+      // ajustar título
+      if(profesor) document.getElementById('headerTitle').textContent = "Horario de la profesora";
+      else if(alumno) document.getElementById('headerTitle').textContent = "Horario de " + alumno;
+      else document.getElementById('headerTitle').textContent = "Horario semanal";
+
+      const weekStart = startOfWeek(anchorDate);
+      // set fecha input
+      document.getElementById('goDate').value = fmtDateISO(anchorDate);
+
+      // construir visibleDays (lo hace renderGrid)
+      renderHeaderAndGrid(weekStart);
+    }
+
+    // separar renderHeader + renderGrid para pasar visibleDays consistente
+    function renderHeaderAndGrid(weekStart){
+      // visibleDays interno (tiene que ser idéntico en header y grid)
+      const showWeekend = document.getElementById('toggleWeekend').checked;
+      const visibleDays = showWeekend ? [0,1,2,3,4,5,6] : [0,1,2,3,4];
+
+      // actualizar columnas del calendario
+      calendarRoot.style.gridTemplateColumns = `80px repeat(${visibleDays.length}, 1fr)`;
+
+      // render header (usamos la función que espera visibleDays)
+      // (re-creamos header manualmente para mantener consistencia)
+      dayHeader.innerHTML = '';
+      const empty = document.createElement('div'); empty.className = 'cell'; empty.style.gridRow = 1; empty.style.gridColumn = 1; dayHeader.appendChild(empty);
+      for(let i=0;i<visibleDays.length;i++){
+        const dayOffset = visibleDays[i];
+        const d = addDays(weekStart, dayOffset);
+        const cell = document.createElement('div');
+        cell.className = 'cell ' + (isToday(d) ? 'today' : '');
+        cell.style.gridRow = 1; cell.style.gridColumn = i+2;
+        cell.innerHTML=`<div>${DAY_NAMES[dayOffset]}</div><small>${d.toLocaleDateString(undefined,{day:'2-digit',month:'short'})}</small>`;
+        dayHeader.appendChild(cell);
+      }
+
+      // render grid using same visibleDays
+      // re-create grid content (hours + slots)
+      grid.innerHTML = '';
+      const totalRows = (dayEnd - dayStart) * 2;
+      grid.style.gridTemplateRows = `repeat(${totalRows},30px)`;
+
       for(let r=0;r<totalRows;r++){
         if(r%2===0){
           const hourCell=document.createElement('div');
           hourCell.className='cell hour';
-          hourCell.textContent=String(dayStart+r/2).padStart(2,'0')+':00';
+          hourCell.textContent=String(dayStart + r/2).padStart(2,'0')+':00';
           hourCell.style.gridRow=`${r+2} / span 2`; hourCell.style.gridColumn=1;
           hourCell.style.display="flex"; hourCell.style.alignItems="center"; grid.appendChild(hourCell);
         }
-        for(let c=0;c<7;c++){
+        for(let c=0;c<visibleDays.length;c++){
           const slot=document.createElement('div'); slot.className='cell slot';
           slot.style.gridRow=r+2; slot.style.gridColumn=c+2; grid.appendChild(slot);
         }
       }
 
+      // ahora pintar eventos (misma lógica que before, pero con visibleDays)
+      const EVENTS = buildEventsForView();
+      const weekStartNum = dayNumber(weekStart);
+      const weekEndNum = dayNumber(addDays(weekStart, 7));
+
       for(const ev of EVENTS){
-        const evDayNum=dayNumber(ev.date);
-        const weekStartNum=dayNumber(weekStart);
-        const weekEndNum=dayNumber(addDays(weekStart,7));
-        if(evDayNum>=weekStartNum && evDayNum<weekEndNum){
-          const d=new Date(ev.date);
-          const dayIdx=(d.getDay()||7)-1;
-          const startRow=Math.floor((toMinutes(ev.start)-dayStart*60)/30)+2;
-          const endRow=Math.ceil((toMinutes(ev.end)-dayStart*60)/30)+2;
-          const el=document.createElement('div');
-          el.className='event cat-clase';
-          if(!profesor && ev.tuClase) el.className+=' tu-clase';
-          el.style.gridColumn=dayIdx+2; el.style.gridRow=`${startRow} / ${endRow}`;
-          el.innerHTML=`<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>`;
-          grid.appendChild(el);
-        }
+        const evDayNum = dayNumber(ev.date);
+        if(evDayNum < weekStartNum || evDayNum >= weekEndNum) continue;
+
+        const d = new Date(ev.date);
+        const dayIdx = (d.getDay() || 7) - 1;
+        const colIndex = visibleDays.indexOf(dayIdx);
+        if(colIndex === -1) continue;
+
+        const evStartMin = toMinutes(ev.start);
+        const evEndMin = toMinutes(ev.end);
+        const dayStartMin = dayStart * 60;
+        const dayEndMin = dayEnd * 60;
+        if(evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue;
+
+        const startClamped = Math.max(evStartMin, dayStartMin);
+        const endClamped = Math.min(evEndMin, dayEndMin);
+        const startRow = Math.floor((startClamped - dayStartMin) / 30) + 2;
+        const endRow = Math.ceil((endClamped - dayStartMin) / 30) + 2;
+
+        const el = document.createElement('div');
+        el.className = 'event cat-clase';
+        if(!profesor && ev.tuClase) el.className += ' tu-clase';
+        el.style.gridColumn = (colIndex + 2);
+        el.style.gridRow = `${startRow} / ${endRow}`;
+        const alumnosMeta = (profesor && ev.alumnos && ev.alumnos.length) ? `<div class="meta-small">${ev.alumnos.join(' / ')}</div>` : '';
+        el.innerHTML = `<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>${alumnosMeta}`;
+        grid.appendChild(el);
       }
     }
 
-    function populateHourSelects(){
-      const startSel=document.getElementById('startHour');
-      const endSel=document.getElementById('endHour');
-      startSel.innerHTML=''; endSel.innerHTML='';
-      for(let h=0;h<=23;h++){
-        const opt1=document.createElement('option'); opt1.value=h; opt1.textContent=String(h).padStart(2,'0')+':00'; startSel.appendChild(opt1);
-        const opt2=document.createElement('option'); opt2.value=h; opt2.textContent=String(h).padStart(2,'0')+':00'; endSel.appendChild(opt2);
-      }
-      startSel.value=dayStart; endSel.value=dayEnd;
-      startSel.addEventListener('change',()=>{ dayStart=parseInt(startSel.value); render(anchorDate); });
-      endSel.addEventListener('change',()=>{ dayEnd=parseInt(endSel.value); render(anchorDate); });
-    }
-
-    function render(date){
-      const weekStart=startOfWeek(date);
-      renderHeader(weekStart);
-      renderGrid(weekStart);
-    }
-
-    document.getElementById('prev').onclick=()=>{ anchorDate=addDays(anchorDate,-7); render(anchorDate); };
-    document.getElementById('next').onclick=()=>{ anchorDate=addDays(anchorDate,7); render(anchorDate); };
-    document.getElementById('today').onclick=()=>{ anchorDate=new Date(); render(anchorDate); };
-    document.getElementById('goDate').onchange=(e)=>{ anchorDate=new Date(e.target.value); render(anchorDate); };
-
+    // inicialización
     populateHourSelects();
-    render(anchorDate);
+    attachControls();
+    // fijar input fecha inicial (hoy)
+    document.getElementById('goDate').value = fmtDateISO(anchorDate);
+    render();
+
+    // auto-render cada minuto (por si quieres ver "hoy" marcado dinámicamente)
+    setInterval(()=>{ render(); }, 60*1000);
+
   </script>
 </body>
 </html>
