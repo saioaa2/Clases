@@ -740,12 +740,14 @@
       const EVENTS = buildEventsForView();
 
       for(const ev of EVENTS){
-        const evDate = new Date(ev.date);
-        if(evDate < weekStart || evDate >= weekEnd) continue; // filtrar solo semana visible
+        const evDate = new Date(ev.date);  // convertir la fecha del evento a Date
+        if(evDate < weekStart || evDate >= addDays(weekStart, 7)) continue; // filtra solo la semana visible
 
-        const dayIdx = (evDate.getDay() || 7) - 1; // 0=Mon..6=Sun
+
+        const dayIdx = (evDate.getDay() || 7) - 1; // 0=Lun .. 6=Dom
         const colIndex = visibleDays.indexOf(dayIdx);
         if(colIndex === -1) continue; // día oculto (fin de semana)
+
 
         // calcular filas con clamp vertical
         const evStartMin = toMinutes(ev.start);
