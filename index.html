@@ -318,119 +318,127 @@
       ]
     };
 
-const params = new URLSearchParams(window.location.search);
-const alumno = params.get("alumno");
-const profesor = alumno === "profesora";
+    const params = new URLSearchParams(window.location.search);
+    const alumno = params.get("alumno");
+    const profesor = alumno === "profesora";
 
-function dayNumber(d){ 
-  const date = new Date(d); 
-  return date.getFullYear()*10000 + (date.getMonth()+1)*100 + date.getDate(); 
-}
+    function dayNumber(d){ const date=new Date(d); return date.getFullYear()*10000+(date.getMonth()+1)*100+date.getDate(); }
 
-let EVENTS = [];
+    let EVENTS = [];
+    if(profesor){
+      EVENTS = CLASES.map(c=>{
+        let alumnoClase=null;
+        for(const nombre in HORARIOS){
+          if(HORARIOS[nombre].some(ev=>ev.date===c.date && ev.start===c.start && ev.end===c.end)){
+            alumnoClase=nombre;
+            break;
+          }
+        }
+        return {...c, title: alumnoClase ? "Clase " + alumnoClase : "No disponible"};
+      });
+    } else if(alumno && HORARIOS[alumno]){
+      document.getElementById("headerTitle").textContent = "Horario de " + alumno;
+      EVENTS = CLASES.map(c=>{
+        const pertenece = HORARIOS[alumno].some(ev=>ev.date===c.date && ev.start===c.start && ev.end===c.end);
+        return {...c, title: pertenece ? "Tu clase" : "No disponible", tuClase: pertenece};
+      });
+    } else {
+      EVENTS = CLASES.map(c=>({...c, title:"No disponible"}));
+    }
 
-if(profesor){
-  // Profesora: CLASES como "No disponible", HORARIOS con nombre del alumno
-    EVENTS = CLASES.map(c => {
-    let alumnoClase = null;
-    for(const nombre in HORARIOS){
-      if(HORARIOS[nombre].some(ev => ev.date===c.date && ev.start===c.start && ev.end===c.end)){
-        alumnoClase = nombre;
-        break;
+    let dayStart=8, dayEnd=22;
+    const DAY_NAMES=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+    const dayHeader=document.getElementById('dayHeader');
+    const grid=document.getElementById('grid');
+    let anchorDate=new Date();
+
+    function startOfWeek(date){ const d=new Date(date); const day=(d.getDay()||7); d.setHours(0,0,0,0); d.setDate(d.getDate()- (day-1)); return d; }
+    function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+    function fmtDateISO(d){ return d.toISOString().slice(0,10); }
+    function toMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
+    function isToday(d){ const t=new Date(); return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate(); }
+
+    function renderHeader(weekStart){
+      dayHeader.innerHTML='';
+      const empty=document.createElement('div'); empty.className='cell'; empty.style.gridRow=1; empty.style.gridColumn=1; dayHeader.appendChild(empty);
+      for(let i=0;i<7;i++){
+        const d=addDays(weekStart,i);
+        const cell=document.createElement('div');
+        cell.className='cell '+(isToday(d)?'today':'');
+        cell.style.gridRow=1; cell.style.gridColumn=i+2;
+        cell.innerHTML=`<div>${DAY_NAMES[i]}</div><small>${d.toLocaleDateString(undefined,{day:'2-digit',month:'short'})}</small>`;
+        dayHeader.appendChild(cell);
       }
     }
-    return {...c, title: alumnoClase ? "Clase de " + alumnoClase : "No disponible"};
-  });
-} else if(alumno && HORARIOS[alumno]){
-  // Alumno: "Tu clase", otras clases de otros alumnos "No disponible", resto "No disponible"
-  EVENTS = CLASES.map(c => {
-    let esTuClase = HORARIOS[alumno].some(ev => ev.date===c.date && ev.start===c.start && ev.end===c.end);
-    let otraClase = false;
-    for(const nombre in HORARIOS){
-      if(nombre !== alumno && HORARIOS[nombre].some(ev => ev.date===c.date && ev.start===c.start && ev.end===c.end)){
-        otraClase = true;
-        break;
+
+    function renderGrid(weekStart){
+      grid.innerHTML='';
+      const totalRows=(dayEnd-dayStart)*2;
+      grid.style.gridTemplateRows=`repeat(${totalRows},30px)`;
+      for(let r=0;r<totalRows;r++){
+        if(r%2===0){
+          const hourCell=document.createElement('div');
+          hourCell.className='cell hour';
+          hourCell.textContent=String(dayStart+r/2).padStart(2,'0')+':00';
+          hourCell.style.gridRow=`${r+2} / span 2`; hourCell.style.gridColumn=1;
+          hourCell.style.display="flex"; hourCell.style.alignItems="center"; grid.appendChild(hourCell);
+        }
+        for(let c=0;c<7;c++){
+          const slot=document.createElement('div'); slot.className='cell slot';
+          slot.style.gridRow=r+2; slot.style.gridColumn=c+2; grid.appendChild(slot);
+        }
+      }
+
+      for(const ev of EVENTS){
+        const evDayNum=dayNumber(ev.date);
+        const weekStartNum=dayNumber(weekStart);
+        const weekEndNum=dayNumber(addDays(weekStart,7));
+        if(evDayNum>=weekStartNum && evDayNum<weekEndNum){
+          const d=new Date(ev.date);
+          const dayIdx=(d.getDay()||7)-1;
+          const startRow=Math.floor((toMinutes(ev.start)-dayStart*60)/30)+2;
+          const endRow=Math.ceil((toMinutes(ev.end)-dayStart*60)/30)+2;
+          const el=document.createElement('div');
+          el.className='event cat-clase';
+          if(!profesor && ev.tuClase) el.className+=' tu-clase';
+          el.style.gridColumn=dayIdx+2; el.style.gridRow=`${startRow} / ${endRow}`;
+          el.innerHTML=`<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>`;
+          grid.appendChild(el);
+        }
       }
     }
-    return {
-      ...c,
-      title: esTuClase ? "Tu clase" : (otraClase ? "No disponible" : "No disponible"),
-      tuClase: esTuClase
-    };
-  });
-  document.getElementById("headerTitle").textContent = "Horario de " + alumno;
-} else {
-  EVENTS = CLASES.map(c => ({...c, title: "No disponible"}));
-}
 
-let dayStart = 8, dayEnd = 22;
-const DAY_NAMES = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-const dayHeader = document.getElementById('dayHeader');
-const grid = document.getElementById('grid');
-let anchorDate = new Date();
-
-function startOfWeek(date){ 
-  const d = new Date(date); 
-  const day = (d.getDay()||7); 
-  d.setHours(0,0,0,0); 
-  d.setDate(d.getDate() - (day-1)); 
-  return d; 
-}
-function addDays(date,n){ 
-  const d = new Date(date); 
-  d.setDate(d.getDate()+n); 
-  return d; 
-}
-function fmtDateISO(d){ return d.toISOString().slice(0,10); }
-function toMinutes(hhmm){ const [h,m] = hhmm.split(":").map(Number); return h*60+m; }
-function isToday(d){ const t = new Date(); return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate(); }
-
-function renderHeader(weekStart){
-  dayHeader.innerHTML='';
-  const empty=document.createElement('div'); empty.className='cell'; empty.style.gridRow=1; empty.style.gridColumn=1; dayHeader.appendChild(empty);
-  for(let i=0;i<7;i++){
-    const d = addDays(weekStart,i);
-    const cell = document.createElement('div');
-    cell.className='cell ' + (isToday(d)?'today':'');
-    cell.style.gridRow=1; cell.style.gridColumn=i+2;
-    cell.innerHTML=`<div>${DAY_NAMES[i]}</div><small>${d.toLocaleDateString(undefined,{day:'2-digit',month:'short'})}</small>`;
-    dayHeader.appendChild(cell);
-  }
-}
-
-function renderGrid(weekStart){
-  grid.innerHTML='';
-  const totalRows=(dayEnd-dayStart)*2;
-  grid.style.gridTemplateRows=`repeat(${totalRows},30px)`;
-  for(let r=0;r<totalRows;r++){
-    if(r%2===0){
-      const hourCell=document.createElement('div');
-      hourCell.className='cell hour';
-      hourCell.textContent=String(dayStart+r/2).padStart(2,'0')+':00';
-      hourCell.style.gridRow=`${r+2} / span 2`; hourCell.style.gridColumn=1;
-      hourCell.style.display="flex"; hourCell.style.alignItems="center"; grid.appendChild(hourCell);
+    function populateHourSelects(){
+      const startSel=document.getElementById('startHour');
+      const endSel=document.getElementById('endHour');
+      for(let h=0;h<=23;h++){
+        const opt1=document.createElement('option'); opt1.value=h; opt1.textContent=String(h).padStart(2,'0')+':00'; startSel.appendChild(opt1);
+        const opt2=document.createElement('option'); opt2.value=h; opt2.textContent=String(h).padStart(2,'0')+':00'; endSel.appendChild(opt2);
+      }
+      startSel.value=dayStart; endSel.value=dayEnd;
+      startSel.addEventListener('change',()=>{ dayStart=Math.min(Number(startSel.value),dayEnd-1); render(); });
+      endSel.addEventListener('change',()=>{ dayEnd=Math.max(Number(endSel.value),dayStart+1); render(); });
     }
-    for(let c=0;c<7;c++){
-      const slot=document.createElement('div'); slot.className='cell slot';
-      slot.style.gridRow=r+2; slot.style.gridColumn=c+2; grid.appendChild(slot);
-    }
-  }
 
-  for(const ev of EVENTS){
-    const evDayNum = dayNumber(ev.date);
-    const weekStartNum = dayNumber(weekStart);
-    const weekEndNum = dayNumber(addDays(weekStart,7));
-    if(evDayNum >= weekStartNum && evDayNum < weekEndNum){
-      const d = new Date(ev.date);
-      const dayIdx = (d.getDay()||7)-1;
-      const startRow = Math.floor((toMinutes(ev.start)-dayStart*60)/30)+2;
-      const endRow = Math.ceil((toMinutes(ev.end)-dayStart*60)/30)+2;
-      const el = document.createElement('div');
-      el.className='event cat-clase';
-      if(!profesor && ev.tuClase) el.className+=' tu-clase';
-      el.style.gridColumn = dayIdx+2; el.style.gridRow = `${startRow} / ${endRow}`;
-      el.innerHTML=`<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>`;
-      grid.appendChild(el);
+    function attachControls(){
+      document.getElementById('prev').addEventListener('click',()=>{ anchorDate=addDays(anchorDate,-7); render(); });
+      document.getElementById('next').addEventListener('click',()=>{ anchorDate=addDays(anchorDate,7); render(); });
+      document.getElementById('today').addEventListener('click',()=>{ anchorDate=new Date(); render(); });
+      document.getElementById('goDate').addEventListener('change',(e)=>{ const d=new Date(e.target.value+'T00:00'); if(!isNaN(d)){ anchorDate=d; render(); } });
+      document.getElementById('toggleWeekend').addEventListener('change',()=>{ render(); });
     }
-  }
-}
+
+    function render(){
+      const weekStart=startOfWeek(anchorDate);
+      renderHeader(weekStart);
+      renderGrid(weekStart);
+      document.getElementById('goDate').value=fmtDateISO(anchorDate);
+    }
+
+    populateHourSelects();
+    attachControls();
+    render();
+    setInterval(render,60*1000);
+  </script>
+</body>
+</html>
