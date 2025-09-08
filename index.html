@@ -33,7 +33,7 @@
     .event .title { font-weight:600; margin-bottom:2px; }
     .event .meta { font-size:.75rem; opacity:.9; }
     .cat-clase { background: var(--primary); }
-    .tu-clase { background: #f59e0b; } /* color distinto para tus clases */
+    .tu-clase { background: #f59e0b; } 
     .now-line { height:2px; background:red; grid-column:2 / -1; }
   </style>
 </head>
@@ -57,9 +57,7 @@
   </main>
 
   <script>
-    // 🔹 Todas las clases posibles
     const CLASES = [
-
       { date: "2025-09-22", start: "09:00", end: "14:00" },
       { date: "2025-09-23", start: "09:00", end: "14:00" },
       { date: "2025-09-23", start: "20:30", end: "21:30" },
@@ -320,20 +318,19 @@
       ]
     };
 
-    // 🔹 Alumno actual desde URL
     const params = new URLSearchParams(window.location.search);
     const alumno = params.get("alumno");
     const profesor = alumno === "profesora";
 
-    // 🔹 Generar eventos
+    function dayNumber(d){ const date=new Date(d); return date.getFullYear()*10000+(date.getMonth()+1)*100+date.getDate(); }
+
     let EVENTS = [];
     if(profesor){
-      // Profesora ve todas las clases con nombre de alumno
-      EVENTS = CLASES.map(c => {
-        let alumnoClase = null;
+      EVENTS = CLASES.map(c=>{
+        let alumnoClase=null;
         for(const nombre in HORARIOS){
-          if(HORARIOS[nombre].some(ev => ev.date===c.date && ev.start===c.start && ev.end===c.end)){
-            alumnoClase = nombre;
+          if(HORARIOS[nombre].some(ev=>ev.date===c.date && ev.start===c.start && ev.end===c.end)){
+            alumnoClase=nombre;
             break;
           }
         }
@@ -341,20 +338,19 @@
       });
     } else if(alumno && HORARIOS[alumno]){
       document.getElementById("headerTitle").textContent = "Horario de " + alumno;
-      EVENTS = CLASES.map(c => {
-        const pertenece = HORARIOS[alumno].some(ev => ev.date===c.date && ev.start===c.start && ev.end===c.end);
+      EVENTS = CLASES.map(c=>{
+        const pertenece = HORARIOS[alumno].some(ev=>ev.date===c.date && ev.start===c.start && ev.end===c.end);
         return {...c, title: pertenece ? "Tu clase" : "No disponible", tuClase: pertenece};
       });
     } else {
-      EVENTS = CLASES.map(c => ({...c, title:"No disponible"}));
+      EVENTS = CLASES.map(c=>({...c, title:"No disponible"}));
     }
 
-    let dayStart = 8;
-    let dayEnd = 22;
-    const DAY_NAMES = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-    const dayHeader = document.getElementById('dayHeader');
-    const grid = document.getElementById('grid');
-    let anchorDate = new Date();
+    let dayStart=8, dayEnd=22;
+    const DAY_NAMES=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+    const dayHeader=document.getElementById('dayHeader');
+    const grid=document.getElementById('grid');
+    let anchorDate=new Date();
 
     function startOfWeek(date){ const d=new Date(date); const day=(d.getDay()||7); d.setHours(0,0,0,0); d.setDate(d.getDate()- (day-1)); return d; }
     function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
@@ -375,11 +371,6 @@
       }
     }
 
-    function dayNumber(d){
-      const date = new Date(d);
-      return date.getFullYear()*10000 + (date.getMonth()+1)*100 + date.getDate();
-    }
-
     function renderGrid(weekStart){
       grid.innerHTML='';
       const totalRows=(dayEnd-dayStart)*2;
@@ -398,15 +389,13 @@
         }
       }
 
-      
-
       for(const ev of EVENTS){
-        const evDayNum = dayNumber(ev.date);
-        const weekStartNum = dayNumber(weekStart);
-        const weekEndNum = dayNumber(addDays(weekStart,7));
-        if(evDayNum >= weekStartNum && evDayNum < weekEndNum){
-          const d = new Date(ev.date);
-          const dayIdx = (d.getDay()||7)-1;
+        const evDayNum=dayNumber(ev.date);
+        const weekStartNum=dayNumber(weekStart);
+        const weekEndNum=dayNumber(addDays(weekStart,7));
+        if(evDayNum>=weekStartNum && evDayNum<weekEndNum){
+          const d=new Date(ev.date);
+          const dayIdx=(d.getDay()||7)-1;
           const startRow=Math.floor((toMinutes(ev.start)-dayStart*60)/30)+2;
           const endRow=Math.ceil((toMinutes(ev.end)-dayStart*60)/30)+2;
           const el=document.createElement('div');
