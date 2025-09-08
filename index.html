@@ -29,12 +29,13 @@
     .grid { display:contents; }
     .grid .cell { border:1px solid var(--line); box-sizing:border-box; background:white; }
     .grid .hour { text-align:right; padding-right:.5rem; font-size:.8rem; color:var(--muted); background:transparent; }
-    .event { padding:.3rem .4rem; border-radius:.6rem; color:white; font-size:.85rem; box-shadow:0 2px 6px rgba(0,0,0,.15); overflow:hidden; display:flex; flex-direction:column; justify-content:center; }
-    .event .title { font-weight:600; margin-bottom:2px; text-transform:capitalize; }
+    .event { padding:.3rem .4rem; border-radius:.6rem; color:white; font-size:.85rem; box-shadow:0 2px 6px rgba(0,0,0,.12); overflow:hidden; display:flex; flex-direction:column; justify-content:center; }
+    .event .title { font-weight:600; margin-bottom:4px; text-transform:capitalize; }
     .event .meta { font-size:.75rem; opacity:.95; }
     .cat-clase { background: var(--primary); }
     .tu-clase { background: #f59e0b; color: #1a1200; }
-    .meta-small { font-size:.7rem; opacity:.9; }
+    .alumno-clase { background: #06b6d4; }
+    .meta-small { font-size:.7rem; opacity:.9; color: #fff; margin-top:4px; }
   </style>
 </head>
 <body>
@@ -57,10 +58,11 @@
   </main>
 
   <script>
-    /* -------------------------
-       Aquí van tus arrays (mismo formato que antes).
-       Los he copiado del ejemplo que mandaste (puedes sustituir por tu versión completa).
-       ------------------------- */
+    /* ======= TUS ARRAYS: pega aquí tus CLASES y HORARIOS (mismo formato que tenías). =======
+       Yo incluyo los arrays de ejemplo que enviabas — si ya los tienes en tu archivo,
+       puedes dejarlos o sustituir por la versión larga que usas en GitHub Pages.
+    */
+
     const CLASES = [
       { date: "2025-09-22", start: "09:00", end: "14:00" },
       { date: "2025-09-23", start: "09:00", end: "14:00" },
@@ -71,7 +73,6 @@
       { date: "2025-09-25", start: "15:00", end: "18:30" },
       { date: "2025-09-25", start: "20:00", end: "21:30" },
       { date: "2025-09-26", start: "09:00", end: "14:00" },
-
       { date: "2025-09-29", start: "09:00", end: "14:00" },
       { date: "2025-09-30", start: "09:00", end: "14:00" },
       { date: "2025-09-30", start: "20:30", end: "21:30" },
@@ -79,7 +80,6 @@
       { date: "2025-10-02", start: "09:00", end: "14:00" },
       { date: "2025-10-02", start: "20:00", end: "21:30" },
       { date: "2025-10-03", start: "09:00", end: "14:00" },
-
       { date: "2025-10-06", start: "09:00", end: "14:00" },
       { date: "2025-10-07", start: "09:00", end: "14:00" },
       { date: "2025-10-07", start: "20:30", end: "21:30" },
@@ -87,7 +87,6 @@
       { date: "2025-10-09", start: "09:00", end: "14:00" },
       { date: "2025-10-09", start: "20:00", end: "21:30" },
       { date: "2025-10-10", start: "09:00", end: "14:00" },
-
       { date: "2025-10-13", start: "09:00", end: "14:00" },
       { date: "2025-10-14", start: "09:00", end: "14:00" },
       { date: "2025-10-14", start: "20:30", end: "21:30" },
@@ -95,7 +94,6 @@
       { date: "2025-10-16", start: "09:00", end: "14:00" },
       { date: "2025-10-16", start: "20:00", end: "21:30" },
       { date: "2025-10-17", start: "09:00", end: "14:00" },
-
       { date: "2025-10-20", start: "09:00", end: "14:00" },
       { date: "2025-10-21", start: "09:00", end: "14:00" },
       { date: "2025-10-21", start: "20:30", end: "21:30" },
@@ -103,7 +101,6 @@
       { date: "2025-10-23", start: "09:00", end: "14:00" },
       { date: "2025-10-23", start: "20:00", end: "21:30" },
       { date: "2025-10-24", start: "09:00", end: "14:00" },
-
       { date: "2025-10-27", start: "09:00", end: "14:00" },
       { date: "2025-10-28", start: "09:00", end: "14:00" },
       { date: "2025-10-28", start: "20:30", end: "21:30" },
@@ -111,114 +108,89 @@
       { date: "2025-10-30", start: "09:00", end: "14:00" },
       { date: "2025-10-30", start: "20:00", end: "21:30" },
       { date: "2025-10-31", start: "09:00", end: "14:00" },
-
       { date: "2025-11-10", start: "09:00", end: "21:00" },
       { date: "2025-11-11", start: "09:00", end: "21:00" },
       { date: "2025-11-12", start: "09:00", end: "21:00" },
       { date: "2025-11-13", start: "09:00", end: "21:00" },
       { date: "2025-11-14", start: "09:00", end: "21:00" },
-
       { date: "2025-11-17", start: "09:00", end: "21:00" },
       { date: "2025-11-18", start: "09:00", end: "21:00" },
       { date: "2025-11-19", start: "09:00", end: "21:00" },
       { date: "2025-11-20", start: "09:00", end: "21:00" },
       { date: "2025-11-21", start: "09:00", end: "21:00" },
-
       { date: "2025-11-24", start: "09:00", end: "19:30" },
       { date: "2025-11-25", start: "09:00", end: "14:00" },
       { date: "2025-11-25", start: "20:30", end: "21:30" },
       { date: "2025-11-26", start: "09:00", end: "19:30" },
-      { date: "2025-10-27", start: "09:00", end: "14:00" },
-      { date: "2025-10-27", start: "20:00", end: "21:30" },
-
       { date: "2025-12-01", start: "09:00", end: "14:00" },
       { date: "2025-12-02", start: "09:00", end: "19:30" },
       { date: "2025-12-02", start: "20:30", end: "21:30" },
       { date: "2025-12-03", start: "09:00", end: "14:00" },
       { date: "2025-12-04", start: "09:00", end: "19:30" },
       { date: "2025-12-04", start: "20:00", end: "21:30" },
-
       { date: "2025-12-09", start: "09:00", end: "14:00" },
       { date: "2025-12-09", start: "20:30", end: "21:30" },
       { date: "2025-12-10", start: "09:00", end: "14:00" },
       { date: "2025-12-11", start: "09:00", end: "19:30" },
       { date: "2025-12-11", start: "20:00", end: "21:30" },
-
       { date: "2025-12-15", start: "09:00", end: "19:30" },
       { date: "2025-12-16", start: "09:00", end: "14:00" },
       { date: "2025-12-16", start: "20:30", end: "21:30" },
       { date: "2025-12-17", start: "09:00", end: "19:30" },
       { date: "2025-12-18", start: "09:00", end: "14:00" },
       { date: "2025-12-18", start: "20:00", end: "21:30" },
-
-      // navidad
-
       { date: "2025-01-07", start: "09:00", end: "14:00" },
       { date: "2025-01-08", start: "09:00", end: "19:30" },
       { date: "2025-01-08", start: "20:00", end: "21:30" },
       { date: "2025-01-09", start: "09:00", end: "14:00" },
-
       { date: "2025-01-12", start: "09:00", end: "19:30" },
       { date: "2025-01-13", start: "20:30", end: "21:30" },
       { date: "2025-01-14", start: "09:00", end: "19:30" },
       { date: "2025-01-15", start: "09:00", end: "14:00" },
-
       { date: "2025-01-26", start: "09:00", end: "19:30" },
       { date: "2025-01-27", start: "09:00", end: "14:00" },
       { date: "2025-01-27", start: "20:30", end: "21:30" },
       { date: "2025-01-29", start: "09:00", end: "14:00" },
       { date: "2025-01-29", start: "20:30", end: "21:30" },
       { date: "2025-01-30", start: "09:00", end: "14:00" },
-
       { date: "2025-02-02", start: "09:00", end: "19:30" },
       { date: "2025-02-03", start: "09:00", end: "19:30" },
       { date: "2025-02-03", start: "20:30", end: "21:30" },
       { date: "2025-02-05", start: "09:00", end: "14:00" },
       { date: "2025-02-05", start: "20:30", end: "21:30" },
       { date: "2025-02-06", start: "09:00", end: "14:00" },
-
       { date: "2025-02-09", start: "09:00", end: "19:30" },
       { date: "2025-02-10", start: "09:00", end: "19:30" },
       { date: "2025-02-10", start: "20:30", end: "21:30" },
       { date: "2025-02-12", start: "09:00", end: "14:00" },
       { date: "2025-02-12", start: "20:30", end: "21:30" },
       { date: "2025-02-13", start: "09:00", end: "14:00" },
-
       { date: "2025-02-16", start: "09:00", end: "19:30" },
       { date: "2025-02-17", start: "09:00", end: "19:30" },
       { date: "2025-02-17", start: "20:30", end: "21:30" },
       { date: "2025-02-19", start: "09:00", end: "14:00" },
       { date: "2025-02-19", start: "20:30", end: "21:30" },
       { date: "2025-02-20", start: "09:00", end: "14:00" },
-
       { date: "2025-02-24", start: "15:00", end: "19:30" },
       { date: "2025-02-24", start: "20:30", end: "21:30" },
       { date: "2025-02-25", start: "09:00", end: "14:00" },
       { date: "2025-02-26", start: "09:00", end: "14:00" },
       { date: "2025-02-26", start: "20:30", end: "21:30" },
-
       { date: "2025-03-02", start: "09:00", end: "14:00" },
       { date: "2025-03-03", start: "09:00", end: "19:30" },
       { date: "2025-03-03", start: "20:30", end: "21:30" },
       { date: "2025-03-05", start: "09:00", end: "14:00" },
       { date: "2025-03-05", start: "20:30", end: "21:30" },
-
       { date: "2025-03-10", start: "09:00", end: "19:30" },
       { date: "2025-03-10", start: "20:30", end: "21:30" },
       { date: "2025-03-12", start: "09:00", end: "14:00" },
       { date: "2025-03-12", start: "20:30", end: "21:30" },
-
       { date: "2025-03-24", start: "20:30", end: "21:30" },
       { date: "2025-03-26", start: "09:00", end: "14:00" },
       { date: "2025-03-26", start: "20:30", end: "21:30" },
       { date: "2025-03-27", start: "09:00", end: "14:00" },
-      
-      // semana santa
-
       { date: "2025-04-09", start: "09:00", end: "14:00" },
       { date: "2025-04-09", start: "20:30", end: "21:30" },
-      { date: "2025-04-09", start: "09:00", end: "14:00" },
-
       { date: "2025-04-13", start: "09:00", end: "14:00" },
       { date: "2025-04-14", start: "09:00", end: "14:00" },
       { date: "2025-04-14", start: "20:30", end: "21:30" },
@@ -226,7 +198,6 @@
       { date: "2025-04-16", start: "09:00", end: "14:00" },
       { date: "2025-04-16", start: "20:30", end: "21:30" },
       { date: "2025-04-17", start: "09:00", end: "14:00" },
-
       { date: "2025-04-20", start: "09:00", end: "14:00" },
       { date: "2025-04-21", start: "09:00", end: "14:00" },
       { date: "2025-04-21", start: "20:30", end: "21:30" },
@@ -234,13 +205,11 @@
       { date: "2025-04-23", start: "09:00", end: "14:00" },
       { date: "2025-04-23", start: "20:30", end: "21:30" },
       { date: "2025-04-24", start: "09:00", end: "14:00" },
-
       { date: "2025-04-27", start: "09:00", end: "14:00" },
       { date: "2025-04-28", start: "09:00", end: "14:00" },
       { date: "2025-04-28", start: "20:30", end: "21:30" },
       { date: "2025-04-29", start: "09:00", end: "14:00" },
       { date: "2025-04-30", start: "20:30", end: "21:30" },
-
       { date: "2025-05-04", start: "09:00", end: "14:00" },
       { date: "2025-05-05", start: "09:00", end: "14:00" },
       { date: "2025-05-05", start: "20:30", end: "21:30" },
@@ -248,14 +217,12 @@
       { date: "2025-05-07", start: "09:00", end: "14:00" },
       { date: "2025-05-07", start: "20:30", end: "21:30" },
       { date: "2025-05-08", start: "09:00", end: "14:00" },
-
       { date: "2025-05-11", start: "09:00", end: "14:00" },
       { date: "2025-05-12", start: "09:00", end: "14:00" },
       { date: "2025-05-12", start: "20:30", end: "21:30" },
       { date: "2025-05-13", start: "09:00", end: "14:00" },
       { date: "2025-05-14", start: "09:00", end: "14:00" },
       { date: "2025-05-14", start: "20:30", end: "21:30" },
-
       { date: "2025-05-18", start: "09:00", end: "14:00" },
       { date: "2025-05-19", start: "09:00", end: "14:00" },
       { date: "2025-05-19", start: "20:30", end: "21:30" },
@@ -265,7 +232,6 @@
       { date: "2025-05-22", start: "09:00", end: "14:00" }
     ];
 
-    // 🔹 Horarios por alumno
     const HORARIOS = {
       noa: [
         { date: "2025-09-16", start: "16:00", end: "17:30" },
@@ -290,7 +256,6 @@
         { date: "2025-05-19", start: "16:00", end: "17:30" },
         { date: "2025-05-26", start: "16:00", end: "17:30" }
       ],
-
       adriana: [
         { date: "2025-09-24", start: "19:00", end: "20:00" },
         { date: "2025-10-01", start: "19:00", end: "20:00" },
@@ -302,7 +267,7 @@
         { date: "2025-12-03", start: "19:00", end: "20:00" },
         { date: "2025-12-10", start: "19:00", end: "20:00" },
         { date: "2025-01-07", start: "19:00", end: "20:00" },
-        { date: "2025-01-21", start: "19:00", end: "20:00" },        
+        { date: "2025-01-21", start: "19:00", end: "20:00" },
         { date: "2025-01-28", start: "19:00", end: "20:00" },
         { date: "2025-02-04", start: "19:00", end: "20:00" },
         { date: "2025-02-11", start: "19:00", end: "20:00" },
@@ -322,8 +287,10 @@
       ]
     };
 
+    /* ======= Lógica de render ======= */
+
     const params = new URLSearchParams(window.location.search);
-    const alumno = params.get("alumno");              // e.g. "noa" o "profesora"
+    const alumno = params.get("alumno"); // e.g. "noa" o "profesora"
     const profesor = alumno === "profesora";
 
     // utilidades
@@ -334,7 +301,7 @@
     function fmtDateISO(d){ return d.toISOString().slice(0,10); }
     function isToday(d){ const t=new Date(); return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate(); }
 
-    // Devuelve true si dos eventos del mismo día se solapan
+    // comprueba solapamiento (misma fecha)
     function overlaps(a, b){
       if(a.date !== b.date) return false;
       const a0 = toMinutes(a.start), a1 = toMinutes(a.end);
@@ -342,145 +309,173 @@
       return a0 < b1 && b0 < a1;
     }
 
-    // Construye EVENTS a partir de CLASES: para cada bloque de la profe calculamos qué alumnos (si alguno) se solapan
+    // construye lista de eventos: incluye CLASES (bloques profe) + HORARIOS (franjas alumno)
     function buildEventsForView(){
-      return CLASES.map(c => {
-        // buscar alumnos que tengan alguna clase que se solape con este bloque c
+      const events = [];
+
+      // 1) bloques CLASES (siempre se muestran)
+      for(const c of CLASES){
         const alumnos = [];
         for(const nombre in HORARIOS){
-          const lista = HORARIOS[nombre];
-          if(lista.some(ev => overlaps(ev, c))){
+          if(HORARIOS[nombre].some(ev => overlaps(ev, c))){
             alumnos.push(nombre);
           }
         }
-
         let title = "No disponible";
-        let tuClase = false;
         if(profesor){
           title = alumnos.length ? "Clase de " + alumnos.join(" / ") : "No disponible";
-        } else if(alumno && HORARIOS[alumno]){
-          tuClase = alumnos.includes(alumno);
-          title = tuClase ? "Tu clase" : "No disponible";
         } else {
+          // para cualquier alumno la regla que pediste: CLASES se ven como No disponible
           title = "No disponible";
         }
-
-        return {
+        events.push({
           ...c,
-          title,
-          tuClase,
-          alumnos
-        };
-      });
+          source: 'clase',
+          alumnos,
+          tuClase: false,
+          title
+        });
+      }
+
+      // 2) franjas HORARIOS (mostramos según vista)
+      for(const nombre in HORARIOS){
+        for(const h of HORARIOS[nombre]){
+          if(profesor){
+            // la profe ve todas las franjas de alumnos (para ver detalles)
+            events.push({
+              ...h,
+              source: 'horario',
+              alumno: nombre,
+              title: "Clase de " + nombre,
+              tuClase: false
+            });
+          } else if(alumno === nombre){
+            // el alumno ve SOLO sus franjas como "Tu clase"
+            events.push({
+              ...h,
+              source: 'horario',
+              alumno: nombre,
+              title: "Tu clase",
+              tuClase: true
+            });
+          } else {
+            // ningún otro alumno debe ver las franjas de otros alumnos -> no las añadimos
+          }
+        }
+      }
+
+      return events;
     }
 
-    // SETTINGS
-    let dayStart = 8, dayEnd = 22; // horas mostradas
-    const DAY_NAMES = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+    // settings y DOM
+    let dayStart = 8, dayEnd = 22;
+    const DAY_NAMES=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
     const dayHeader = document.getElementById('dayHeader');
     const grid = document.getElementById('grid');
     const calendarRoot = document.getElementById('calendarRoot');
     let anchorDate = new Date();
 
-    // render header (días visibles según toggle weekend)
-    function renderHeader(weekStart, visibleDays){
-      dayHeader.innerHTML = '';
-      // primera celda vacía (columna de horas)
-      const empty = document.createElement('div');
-      empty.className = 'cell';
-      empty.style.gridRow = 1;
-      empty.style.gridColumn = 1;
-      dayHeader.appendChild(empty);
+    // pinta header + grid (manteniendo visibleDays consistente)
+    function render(){
+      // título
+      if(profesor) document.getElementById('headerTitle').textContent = "Horario de la profesora";
+      else if(alumno) document.getElementById('headerTitle').textContent = "Horario de " + alumno;
+      else document.getElementById('headerTitle').textContent = "Horario semanal";
 
+      const weekStart = startOfWeek(anchorDate);
+      document.getElementById('goDate').value = fmtDateISO(anchorDate);
+
+      const showWeekend = document.getElementById('toggleWeekend').checked;
+      const visibleDays = showWeekend ? [0,1,2,3,4,5,6] : [0,1,2,3,4];
+
+      // ajustar columnas del calendario
+      calendarRoot.style.gridTemplateColumns = `80px repeat(${visibleDays.length}, 1fr)`;
+
+      // HEADER
+      dayHeader.innerHTML = '';
+      const empty = document.createElement('div'); empty.className='cell'; empty.style.gridRow=1; empty.style.gridColumn=1; dayHeader.appendChild(empty);
       for(let i=0;i<visibleDays.length;i++){
-        const dayOffset = visibleDays[i]; // 0 = lunes, 6 = domingo
+        const dayOffset = visibleDays[i];
         const d = addDays(weekStart, dayOffset);
         const cell = document.createElement('div');
         cell.className = 'cell ' + (isToday(d) ? 'today' : '');
         cell.style.gridRow = 1;
-        cell.style.gridColumn = i+2; // +1 por la columna de horas
+        cell.style.gridColumn = i+2;
         cell.innerHTML = `<div>${DAY_NAMES[dayOffset]}</div><small>${d.toLocaleDateString(undefined,{day:'2-digit',month:'short'})}</small>`;
         dayHeader.appendChild(cell);
       }
-    }
 
-    function renderGrid(weekStart){
+      // GRID (horas + slots)
       grid.innerHTML = '';
-
-      // decidir días visibles
-      const showWeekend = document.getElementById('toggleWeekend').checked;
-      const visibleDays = showWeekend ? [0,1,2,3,4,5,6] : [0,1,2,3,4];
-
-      // ajustar grid-template-columns del calendario para que las columnas se adapten al número de días visibles
-      calendarRoot.style.gridTemplateColumns = `80px repeat(${visibleDays.length}, 1fr)`;
-
-      const totalRows = (dayEnd - dayStart) * 2; // cada media hora es una fila
+      const totalRows = (dayEnd - dayStart) * 2;
       grid.style.gridTemplateRows = `repeat(${totalRows},30px)`;
 
-      // crear celdas horarias y slots
       for(let r=0;r<totalRows;r++){
         if(r%2===0){
-          const hourCell = document.createElement('div');
-          hourCell.className = 'cell hour';
-          hourCell.textContent = String(dayStart + r/2).padStart(2,'0') + ':00';
-          hourCell.style.gridRow = `${r+2} / span 2`;
-          hourCell.style.gridColumn = 1;
-          hourCell.style.display = "flex";
-          hourCell.style.alignItems = "center";
-          grid.appendChild(hourCell);
+          const hourCell=document.createElement('div');
+          hourCell.className='cell hour';
+          hourCell.textContent=String(dayStart + r/2).padStart(2,'0')+':00';
+          hourCell.style.gridRow=`${r+2} / span 2`; hourCell.style.gridColumn=1;
+          hourCell.style.display="flex"; hourCell.style.alignItems="center"; grid.appendChild(hourCell);
         }
         for(let c=0;c<visibleDays.length;c++){
-          const slot = document.createElement('div');
-          slot.className = 'cell slot';
-          slot.style.gridRow = r+2;
-          slot.style.gridColumn = c+2;
-          grid.appendChild(slot);
+          const slot=document.createElement('div'); slot.className='cell slot';
+          slot.style.gridRow=r+2; slot.style.gridColumn=c+2; grid.appendChild(slot);
         }
       }
 
-      // obtener eventos (solo los bloques CLASES, con título ya calculado)
+      // PINTAR EVENTOS (CLASES + HORARIOS filtrados en buildEventsForView)
       const EVENTS = buildEventsForView();
-
-      // rango de semana en números para filtrar
       const weekStartNum = dayNumber(weekStart);
-      const weekEndNum = dayNumber(addDays(weekStart, 7));
-
+      const weekEndNum = dayNumber(addDays(weekStart,7));
       for(const ev of EVENTS){
         const evDayNum = dayNumber(ev.date);
         if(evDayNum < weekStartNum || evDayNum >= weekEndNum) continue;
 
         const d = new Date(ev.date);
-        const dayIdx = (d.getDay() || 7) - 1; // 0 = lunes ... 6 = domingo
+        const dayIdx = (d.getDay() || 7) - 1; // 0=Mon..6=Sun
         const colIndex = visibleDays.indexOf(dayIdx);
-        if(colIndex === -1) continue; // día no visible (fin de semana oculto)
+        if(colIndex === -1) continue; // día oculto (fin de semana)
 
-        // calcular filas (clamp a la ventana visual)
+        // calcular filas con clamp vertical
         const evStartMin = toMinutes(ev.start);
         const evEndMin = toMinutes(ev.end);
         const dayStartMin = dayStart * 60;
         const dayEndMin = dayEnd * 60;
-
-        // si el evento está completamente fuera de la vista vertical, saltar
-        if(evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue;
+        if(evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue; // fuera de vista
 
         const startClamped = Math.max(evStartMin, dayStartMin);
         const endClamped = Math.min(evEndMin, dayEndMin);
-
         const startRow = Math.floor((startClamped - dayStartMin) / 30) + 2;
         const endRow = Math.ceil((endClamped - dayStartMin) / 30) + 2;
 
         const el = document.createElement('div');
-        el.className = 'event cat-clase';
-        if(!profesor && ev.tuClase) el.className += ' tu-clase';
-        el.style.gridColumn = (colIndex + 2); // +1 por columna horas, +1 porque columnas empiezan en 1
+        // clases CSS según tipo
+        let cls = 'event';
+        if(ev.source === 'clase') cls += ' cat-clase';
+        else if(ev.source === 'horario'){
+          if(ev.tuClase) cls += ' tu-clase';
+          else cls += ' alumno-clase';
+        }
+        el.className = cls;
+        el.style.gridColumn = (colIndex + 2);
         el.style.gridRow = `${startRow} / ${endRow}`;
-        const alumnosMeta = (profesor && ev.alumnos && ev.alumnos.length) ? `<div class="meta-small">${ev.alumnos.join(' / ')}</div>` : '';
-        el.innerHTML = `<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>${alumnosMeta}`;
+
+        // contenido
+        let metaExtra = '';
+        if(ev.source === 'clase' && profesor && ev.alumnos && ev.alumnos.length){
+          metaExtra = `<div class="meta-small">${ev.alumnos.join(' / ')}</div>`;
+        }
+        if(ev.source === 'horario' && profesor){
+          metaExtra = `<div class="meta-small">alumno: ${ev.alumno}</div>`;
+        }
+
+        el.innerHTML = `<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>${metaExtra}`;
         grid.appendChild(el);
       }
     }
 
-    // selects hora
+    // selects de horas y controles
     function populateHourSelects(){
       const startSel=document.getElementById('startHour');
       const endSel=document.getElementById('endHour');
@@ -503,7 +498,6 @@
       });
     }
 
-    // controles
     function attachControls(){
       document.getElementById('prev').addEventListener('click', ()=>{ anchorDate = addDays(anchorDate, -7); render(); });
       document.getElementById('next').addEventListener('click', ()=>{ anchorDate = addDays(anchorDate, 7); render(); });
@@ -512,110 +506,12 @@
       document.getElementById('toggleWeekend').addEventListener('change', ()=>{ render(); });
     }
 
-    // render principal
-    function render(){
-      // ajustar título
-      if(profesor) document.getElementById('headerTitle').textContent = "Horario de la profesora";
-      else if(alumno) document.getElementById('headerTitle').textContent = "Horario de " + alumno;
-      else document.getElementById('headerTitle').textContent = "Horario semanal";
-
-      const weekStart = startOfWeek(anchorDate);
-      // set fecha input
-      document.getElementById('goDate').value = fmtDateISO(anchorDate);
-
-      // construir visibleDays (lo hace renderGrid)
-      renderHeaderAndGrid(weekStart);
-    }
-
-    // separar renderHeader + renderGrid para pasar visibleDays consistente
-    function renderHeaderAndGrid(weekStart){
-      // visibleDays interno (tiene que ser idéntico en header y grid)
-      const showWeekend = document.getElementById('toggleWeekend').checked;
-      const visibleDays = showWeekend ? [0,1,2,3,4,5,6] : [0,1,2,3,4];
-
-      // actualizar columnas del calendario
-      calendarRoot.style.gridTemplateColumns = `80px repeat(${visibleDays.length}, 1fr)`;
-
-      // render header (usamos la función que espera visibleDays)
-      // (re-creamos header manualmente para mantener consistencia)
-      dayHeader.innerHTML = '';
-      const empty = document.createElement('div'); empty.className = 'cell'; empty.style.gridRow = 1; empty.style.gridColumn = 1; dayHeader.appendChild(empty);
-      for(let i=0;i<visibleDays.length;i++){
-        const dayOffset = visibleDays[i];
-        const d = addDays(weekStart, dayOffset);
-        const cell = document.createElement('div');
-        cell.className = 'cell ' + (isToday(d) ? 'today' : '');
-        cell.style.gridRow = 1; cell.style.gridColumn = i+2;
-        cell.innerHTML=`<div>${DAY_NAMES[dayOffset]}</div><small>${d.toLocaleDateString(undefined,{day:'2-digit',month:'short'})}</small>`;
-        dayHeader.appendChild(cell);
-      }
-
-      // render grid using same visibleDays
-      // re-create grid content (hours + slots)
-      grid.innerHTML = '';
-      const totalRows = (dayEnd - dayStart) * 2;
-      grid.style.gridTemplateRows = `repeat(${totalRows},30px)`;
-
-      for(let r=0;r<totalRows;r++){
-        if(r%2===0){
-          const hourCell=document.createElement('div');
-          hourCell.className='cell hour';
-          hourCell.textContent=String(dayStart + r/2).padStart(2,'0')+':00';
-          hourCell.style.gridRow=`${r+2} / span 2`; hourCell.style.gridColumn=1;
-          hourCell.style.display="flex"; hourCell.style.alignItems="center"; grid.appendChild(hourCell);
-        }
-        for(let c=0;c<visibleDays.length;c++){
-          const slot=document.createElement('div'); slot.className='cell slot';
-          slot.style.gridRow=r+2; slot.style.gridColumn=c+2; grid.appendChild(slot);
-        }
-      }
-
-      // ahora pintar eventos (misma lógica que before, pero con visibleDays)
-      const EVENTS = buildEventsForView();
-      const weekStartNum = dayNumber(weekStart);
-      const weekEndNum = dayNumber(addDays(weekStart, 7));
-
-      for(const ev of EVENTS){
-        const evDayNum = dayNumber(ev.date);
-        if(evDayNum < weekStartNum || evDayNum >= weekEndNum) continue;
-
-        const d = new Date(ev.date);
-        const dayIdx = (d.getDay() || 7) - 1;
-        const colIndex = visibleDays.indexOf(dayIdx);
-        if(colIndex === -1) continue;
-
-        const evStartMin = toMinutes(ev.start);
-        const evEndMin = toMinutes(ev.end);
-        const dayStartMin = dayStart * 60;
-        const dayEndMin = dayEnd * 60;
-        if(evEndMin <= dayStartMin || evStartMin >= dayEndMin) continue;
-
-        const startClamped = Math.max(evStartMin, dayStartMin);
-        const endClamped = Math.min(evEndMin, dayEndMin);
-        const startRow = Math.floor((startClamped - dayStartMin) / 30) + 2;
-        const endRow = Math.ceil((endClamped - dayStartMin) / 30) + 2;
-
-        const el = document.createElement('div');
-        el.className = 'event cat-clase';
-        if(!profesor && ev.tuClase) el.className += ' tu-clase';
-        el.style.gridColumn = (colIndex + 2);
-        el.style.gridRow = `${startRow} / ${endRow}`;
-        const alumnosMeta = (profesor && ev.alumnos && ev.alumnos.length) ? `<div class="meta-small">${ev.alumnos.join(' / ')}</div>` : '';
-        el.innerHTML = `<div class="title">${ev.title}</div><div class="meta">${ev.start} – ${ev.end}</div>${alumnosMeta}`;
-        grid.appendChild(el);
-      }
-    }
-
-    // inicialización
+    // init
     populateHourSelects();
     attachControls();
-    // fijar input fecha inicial (hoy)
     document.getElementById('goDate').value = fmtDateISO(anchorDate);
     render();
-
-    // auto-render cada minuto (por si quieres ver "hoy" marcado dinámicamente)
     setInterval(()=>{ render(); }, 60*1000);
-
   </script>
 </body>
 </html>
