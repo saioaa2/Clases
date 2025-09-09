@@ -191,6 +191,15 @@
     </div>
   </header>
 
+  <!-- Botón arriba -->
+<div id="excelButtonContainer"></div>
+
+<!-- Calendario -->
+<div id="calendarRoot"></div>
+
+<!-- Aquí aparecerá el Excel cuando pulses el botón -->
+<div id="excelContent" style="margin-top:20px;"></div>
+
   <main class="calendar" id="calendarRoot">
     <div id="dayHeader" class="day-header"></div>
     <div id="grid" class="grid"></div>
@@ -594,6 +603,7 @@
       ]
     };
 
+    
   /* ======= Lógica de render ======= */
 const params = new URLSearchParams(window.location.search);
 const alumno = params.get("alumno"); 
@@ -601,26 +611,28 @@ const profesor = alumno === "profesora";
 
 // enlaces por alumno
 const excelLinks = {
-  "noa": "https://docs.google.com/spreadsheets/d/16KW2ePjq0u1HVN2kQBjN90s-dx7rCVUODYchkh9GM-I/edit?gid=0#gid=0",
-  "adriana": "https://docs.google.com/spreadsheets/d/1uwegsvb28_4MAmOisCRguB_HQ8B2XMZhbzQ-_XpP-K0/edit?gid=0#gid=0",
-  "paula_carla": "https://docs.google.com/spreadsheets/d/14dQIOfv4ojAy2ejdUSXohmevLUkYKn2ycSRf5ApFwv4/edit?gid=0#gid=0",
-  "lea": "https://docs.google.com/spreadsheets/d/1VwZXLD3W9cGIjw1ODMmKlwrkuBk0YxnaWmVlM6iGWfk/edit?gid=0#gid=0"
+  "noa": "https://docs.google.com/spreadsheets/d/16KW2ePjq0u1HVN2kQBjN90s-dx7rCVUODYchkh9GM-I/pubhtml?widget=true&headers=false",
+  "adriana": "https://docs.google.com/spreadsheets/d/1uwegsvb28_4MAmOisCRguB_HQ8B2XMZhbzQ-_XpP-K0/pubhtml?widget=true&headers=false",
+  "paula_carla": "https://docs.google.com/spreadsheets/d/14dQIOfv4ojAy2ejdUSXohmevLUkYKn2ycSRf5ApFwv4/pubhtml?widget=true&headers=false",
+  "lea": "https://docs.google.com/spreadsheets/d/1VwZXLD3W9cGIjw1ODMmKlwrkuBk0YxnaWmVlM6iGWfk/pubhtml?widget=true&headers=false"
 };
 
-// insertar el excel correcto
+// si el alumno tiene excel asignado, añadimos el botón
 if (alumno && excelLinks[alumno]) {
+  document.getElementById("excelButtonContainer").innerHTML = `
+    <button onclick="showExcel()" style="margin-bottom:10px;">
+      Ver Excel de ${alumno}
+    </button>
+  `;
+}
+
+// función que muestra el excel debajo del calendario
+function showExcel(){
   document.getElementById("excelContent").innerHTML = `
     <iframe src="${excelLinks[alumno]}" width="100%" height="600" frameborder="0"></iframe>
   `;
-} else {
-  document.getElementById("excelContent").innerHTML = `<p>No hay Excel asignado a este alumno.</p>`;
 }
 
-// función para cambiar pestañas
-function showTab(tab){
-  document.getElementById("calendarioTab").style.display = tab === "calendario" ? "block" : "none";
-  document.getElementById("excelTab").style.display = tab === "excel" ? "block" : "none";
-}
 
 // utilidades
 function toMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60 + m; }
@@ -719,6 +731,7 @@ function render(){
   const visibleDays = showWeekend ? [0,1,2,3,4,5,6] : [0,1,2,3,4];
 
   // ajustar columnas del calendario
+  
   calendarRoot.style.gridTemplateColumns = `80px repeat(${visibleDays.length}, 1fr)`;
 
   // HEADER
@@ -856,20 +869,5 @@ render();
 setInterval(()=>{ render(); }, 60*1000);
 
 </script>
-<div>
-  <button onclick="showTab('calendario')">Calendario</button>
-  <button onclick="showTab('excel')">Excel</button>
-</div>
-
-<!-- Calendario -->
-<div id="calendarioTab" class="tab">
-  <div id="calendarRoot"></div>
-</div>
-
-<!-- Excel -->
-<div id="excelTab" class="tab" style="display:none;">
-  <div id="excelContent"></div>
-</div>
-
 </body>
 </html>
