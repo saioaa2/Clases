@@ -176,6 +176,7 @@
     }
   </style>
 </head>
+  
 <body>
   <header>
     <h1 id="headerTitle">Horario semanal</h1>
@@ -598,6 +599,29 @@ const params = new URLSearchParams(window.location.search);
 const alumno = params.get("alumno"); 
 const profesor = alumno === "profesora";
 
+// enlaces por alumno
+const excelLinks = {
+  "noa": "https://docs.google.com/spreadsheets/d/16KW2ePjq0u1HVN2kQBjN90s-dx7rCVUODYchkh9GM-I/edit?gid=0#gid=0",
+  "adriana": "https://docs.google.com/spreadsheets/d/1uwegsvb28_4MAmOisCRguB_HQ8B2XMZhbzQ-_XpP-K0/edit?gid=0#gid=0",
+  "paula_carla": "https://docs.google.com/spreadsheets/d/14dQIOfv4ojAy2ejdUSXohmevLUkYKn2ycSRf5ApFwv4/edit?gid=0#gid=0",
+  "lea": "https://docs.google.com/spreadsheets/d/1VwZXLD3W9cGIjw1ODMmKlwrkuBk0YxnaWmVlM6iGWfk/edit?gid=0#gid=0"
+};
+
+// insertar el excel correcto
+if (alumno && excelLinks[alumno]) {
+  document.getElementById("excelContent").innerHTML = `
+    <iframe src="${excelLinks[alumno]}" width="100%" height="600" frameborder="0"></iframe>
+  `;
+} else {
+  document.getElementById("excelContent").innerHTML = `<p>No hay Excel asignado a este alumno.</p>`;
+}
+
+// función para cambiar pestañas
+function showTab(tab){
+  document.getElementById("calendarioTab").style.display = tab === "calendario" ? "block" : "none";
+  document.getElementById("excelTab").style.display = tab === "excel" ? "block" : "none";
+}
+
 // utilidades
 function toMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60 + m; }
 function dayNumber(d){ const date=new Date(d); return date.getFullYear()*10000 + (date.getMonth()+1)*100 + date.getDate(); }
@@ -832,5 +856,20 @@ render();
 setInterval(()=>{ render(); }, 60*1000);
 
 </script>
+<div>
+  <button onclick="showTab('calendario')">Calendario</button>
+  <button onclick="showTab('excel')">Excel</button>
+</div>
+
+<!-- Calendario -->
+<div id="calendarioTab" class="tab">
+  <div id="calendarRoot"></div>
+</div>
+
+<!-- Excel -->
+<div id="excelTab" class="tab" style="display:none;">
+  <div id="excelContent"></div>
+</div>
+
 </body>
 </html>
