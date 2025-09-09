@@ -194,7 +194,7 @@
 <!-- Calendario -->
 <div id="calendarRoot"></div>
 
-<!-- Botón para abrir Excel -->
+<!-- Botón para abrir Excel (abajo del calendario) -->
 <div id="excelButtonContainer" style="margin-top:10px;"></div>
 
 <!-- Aquí aparecerá el Excel cuando pulses el botón -->
@@ -643,7 +643,7 @@ if (alumno && excelLinks[alumno]) {
 // función que muestra el excel debajo del calendario
 function showExcel(){
   document.getElementById("excelContent").innerHTML = `
-    <iframe src="${excelLinks[alumno]}" width="100%" height="600" frameborder="0"></iframe>
+    <iframe src="${excelLinks[alumno]}" width="100%" height="600" frameborder="0" style="display:block;"></iframe>
   `;
 }
 
