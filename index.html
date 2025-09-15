@@ -728,8 +728,9 @@
 
   /* ======= Lógica de render ======= */
 const params = new URLSearchParams(window.location.search);
-const alumno = params.get("alumno"); 
-const profesor = alumno === "profesora";
+const alumnoParam = params.get("alumno"); 
+const alumnosSeleccionados = alumnoParam ? alumnoParam.split(",") : [];
+const profesor = alumnosSeleccionados.includes("profesora");
 
 // enlaces por alumno
 const excelLinks = {
@@ -739,33 +740,39 @@ const excelLinks = {
   "Lea": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRBKbAj1KPCueJHL5kY3aBznD03j2NrN0CRfXPuHGd_pODCwPURF9I0eyZOh8K4oOkiHf980fy1MbXy/pubhtml"
 };
 
-//  botón estilizado
-if (alumno && excelLinks[alumno]) {
-  document.getElementById("excelButtonContainer").innerHTML = `
-    <button onclick="showExcel()" 
-            style="
-              background-color: #4CAF50; 
-              color: white; 
-              padding: 8px 16px; 
-              font-size: 14px; 
-              border: none; 
-              border-radius: 6px; 
-              cursor: pointer; 
-              box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-              transition: 0.3s;
-            "
-            onmouseover="this.style.backgroundColor='#45a049'"
-            onmouseout="this.style.backgroundColor='#4CAF50'"
-    >
-      Ver Excel de ${alumno}
-    </button>
-  `;
+// ======= Botones por alumno =======
+if (alumnosSeleccionados.length > 0) {
+  let botonesHTML = "";
+  alumnosSeleccionados.forEach(nombre => {
+    if (excelLinks[nombre]) {
+      botonesHTML += `
+        <button onclick="showExcel('${nombre}')" 
+                style="
+                  background-color: #4CAF50; 
+                  color: white; 
+                  padding: 8px 16px; 
+                  font-size: 14px; 
+                  border: none; 
+                  border-radius: 6px; 
+                  cursor: pointer; 
+                  margin: 5px;
+                  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                  transition: 0.3s;
+                "
+                onmouseover="this.style.backgroundColor='#45a049'"
+                onmouseout="this.style.backgroundColor='#4CAF50'">
+          Ver Excel de ${nombre}
+        </button>
+      `;
+    }
+  });
+  document.getElementById("excelButtonContainer").innerHTML = botonesHTML;
 }
 
 // función que muestra el excel debajo del calendario
-function showExcel(){
+function showExcel(nombre){
   document.getElementById("excelContent").innerHTML = `
-    <iframe src="${excelLinks[alumno]}" width="100%" height="600" frameborder="0" style="display:block;"></iframe>
+    <iframe src="${excelLinks[nombre]}" width="100%" height="600" frameborder="0" style="display:block;"></iframe>
   `;
 }
 
