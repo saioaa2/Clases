@@ -731,6 +731,7 @@
 const params = new URLSearchParams(window.location.search);
 const alumno = params.get("alumno"); 
 const profesor = alumno === "profesora";
+const selectedAlumnos = alumnoParam ? alumnoParam.split(",").map(s => s.trim()) : [];
 
 // enlaces por alumno
 const excelLinks = {
@@ -808,7 +809,6 @@ function buildEventsForView(){
 
     let title = "No disponible";
     if(alumnosEnClase.length) {
-      // si hay alguno de los seleccionados en esa clase
       title = "Clase de " + alumnosEnClase.join(" / ");
     }
 
@@ -821,7 +821,7 @@ function buildEventsForView(){
     });
   }
 
-  // 2) franjas HORARIOS (sólo de los seleccionados)
+  // 2) franjas HORARIOS
   for(const nombre in HORARIOS){
     for(const h of HORARIOS[nombre]){
       if(selectedAlumnos.includes(nombre)){
@@ -833,7 +833,6 @@ function buildEventsForView(){
           tuClase: true
         });
       } else {
-        // franja de otro alumno → no disponible
         events.push({
           ...h,
           source: 'horario',
@@ -869,7 +868,6 @@ function render(){
   } else {
     document.getElementById('headerTitle').textContent = "Horario semanal";
   }
-
 
   const weekStart = startOfWeek(anchorDate);
   const weekEnd = addDays(weekStart, 7);
