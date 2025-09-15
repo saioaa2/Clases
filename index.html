@@ -718,9 +718,11 @@
     
 /* ======= Lógica de render ======= */
 const params = new URLSearchParams(window.location.search);
-const alumno = params.get("alumno");
+let alumno = params.get("alumno");
 const profesor = alumno === "profesora";
-const alumnos = params.get("alumnos")?.split(",") || [];
+
+// Forzar siempre array de alumnos
+const alumnos = alumno ? alumno.split(",").map(a => a.trim()) : [];
 
 // Definir grupos de hermanos
 const gruposHermanos = [
@@ -847,7 +849,7 @@ let anchorDate = new Date();
 function render(){
   // título
   if(profesor) document.getElementById('headerTitle').textContent = "Horario de la profesora";
-  else if(alumno) document.getElementById('headerTitle').textContent = "Horario de " + alumno;
+  else if(alumnos.length) document.getElementById('headerTitle').textContent = "Horario de " + alumnos.join(" / ");
   else document.getElementById('headerTitle').textContent = "Horario semanal";
 
   const weekStart = startOfWeek(anchorDate);
