@@ -795,41 +795,36 @@ function overlaps(a, b){
 function buildEventsForView(){
   const events = [];
 
-  // 1) bloques CLASES (siempre se muestran)
+  // 1) bloques CLASES
   for(const c of CLASES){
-    const alumnos = [];
+    const alumnosEnClase = [];
     for(const nombre in HORARIOS){
       if(HORARIOS[nombre].some(ev => overlaps(ev, c))){
-        alumnos.push(nombre);
+        if(selectedAlumnos.includes(nombre)){
+          alumnosEnClase.push(nombre);
+        }
       }
     }
+
     let title = "No disponible";
-    if(profesor){
-      title = alumnos.length ? "Clase de " + alumnos.join(" / ") : "No disponible";
-    } else {
-      title = "No disponible";
+    if(alumnosEnClase.length) {
+      // si hay alguno de los seleccionados en esa clase
+      title = "Clase de " + alumnosEnClase.join(" / ");
     }
+
     events.push({
       ...c,
       source: 'clase',
-      alumnos,
+      alumnos: alumnosEnClase,
       tuClase: false,
       title
     });
   }
 
-  // 2) franjas HORARIOS (mostramos según vista)
+  // 2) franjas HORARIOS (sólo de los seleccionados)
   for(const nombre in HORARIOS){
     for(const h of HORARIOS[nombre]){
-      if(profesor){
-        events.push({
-          ...h,
-          source: 'horario',
-          alumno: nombre,
-          title: "Clase de " + nombre,
-          tuClase: false
-        });
-      } else if(alumno === nombre){
+      if(selectedAlumnos.includes(nombre)){
         events.push({
           ...h,
           source: 'horario',
@@ -837,12 +832,22 @@ function buildEventsForView(){
           title: "Clase de " + nombre,
           tuClase: true
         });
+      } else {
+        // franja de otro alumno → no disponible
+        events.push({
+          ...h,
+          source: 'horario',
+          alumno: nombre,
+          title: "No disponible",
+          tuClase: false
+        });
       }
     }
   }
 
   return events;
 }
+
 
 // settings y DOM
 let dayStart = 8, dayEnd = 22;
@@ -855,9 +860,16 @@ let anchorDate = new Date();
 // pinta header + grid (manteniendo visibleDays consistente)
 function render(){
   // título
-  if(profesor) document.getElementById('headerTitle').textContent = "Horario de la profesora";
-  else if(alumno) document.getElementById('headerTitle').textContent = "Horario de " + alumno;
-  else document.getElementById('headerTitle').textContent = "Horario semanal";
+  // título
+  if (profesor) {
+    document.getElementById('headerTitle').textContent = "Horario de la profesora";
+  } else if (selectedAlumnos.length > 0) {
+    document.getElementById('headerTitle').textContent =
+      "Horario de " + selectedAlumnos.join(" & ");
+  } else {
+    document.getElementById('headerTitle').textContent = "Horario semanal";
+  }
+
 
   const weekStart = startOfWeek(anchorDate);
   const weekEnd = addDays(weekStart, 7);
