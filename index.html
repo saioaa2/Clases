@@ -727,8 +727,9 @@ const alumnos = params.get("alumnos")?.split(",") || [];
 
 // filtrar y agrupar por alumno
 const clasesFiltradas = CLASES.filter(c =>
-  c.alumnos.some(a => alumnos.includes(a))
+  !c.alumnos || c.alumnos.some(a => alumnos.includes(a))
 );
+
 
 const clasesPorAlumno = {};
 clasesFiltradas.forEach(c => {
@@ -767,7 +768,7 @@ const excelLinks = {
 
 // si el grupo exacto es paula y carla, usamos el Excel combinado
 let excelKey;
-if (alumnos.includes("paula") && alumnos.includes("carla") && alumnos.length === 2) {
+if (alumnos.includes("Paula") && alumnos.includes("Carla") && alumnos.length === 2) {
   excelKey = "paula_carla";
 } else if (alumnos.includes("Adriana") && alumnos.includes("Jorge") && alumnos.length === 2) {
   excelKey = "adriana_jorge";
