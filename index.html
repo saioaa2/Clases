@@ -726,10 +726,11 @@ const profesor = alumno === "profesora";
 const alumnos = params.get("alumnos")?.split(",") || [];
 
 // filtrar y agrupar por alumno
-const clasesFiltradas = CLASES.filter(c =>
-  !c.alumnos || c.alumnos.some(a => alumnos.includes(a))
+const clasesFiltradas = CLASES.filter(c => 
+  c.alumnos && c.alumnos.some(a => alumnos.includes(a))
 );
 
+console.log(clasesFiltradas);
 
 const clasesPorAlumno = {};
 clasesFiltradas.forEach(c => {
