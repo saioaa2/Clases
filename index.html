@@ -718,188 +718,113 @@
     
 /* ======= Lógica de render ======= */
 const params = new URLSearchParams(window.location.search);
-// const alumno = params.get("alumno"); 
+const alumno = params.get("alumno");
 const profesor = alumno === "profesora";
 
-// leer query params
 const alumnos = params.get("alumnos")?.split(",") || [];
 
-// definir grupos de hermanos
-const GRUPOS_HERMANOS = [
-  ["Paula", "Carla"],
-  ["Adriana", "Jorge"]
-];
-
-// filtrar y agrupar por alumno/grupo
-const clasesFiltradas = CLASES.filter(c => {
-  if (!c.alumnos) return false;
-
-  // caso hermanos
-  for (const grupo of GRUPOS_HERMANOS) {
-    if (grupo.every(a => alumnos.includes(a)) && alumnos.length === grupo.length) {
-      return c.alumnos.some(a => grupo.includes(a));
-    }
-  }
-
-  // caso individual
+// Filtrar clases según alumno o grupos de hermanos
+let clasesFiltradas = CLASES.filter(c => {
+  if (profesor) return true; // profesora ve todas
   return c.alumnos.some(a => alumnos.includes(a));
 });
 
-console.log(clasesFiltradas);
+// Agrupar por alumno o por grupo de hermanos
+const gruposHermanos = [
+  ["Paula","Carla"],
+  ["Adriana","Jorge"]
+];
 
-// agrupar para render
 const clasesPorAlumno = {};
 clasesFiltradas.forEach(c => {
-  const nombreParaTitulo = (() => {
-    const grupo = GRUPOS_HERMANOS.find(gr => gr.every(a => alumnos.includes(a)));
-    if (grupo) return c.alumnos.filter(a => grupo.includes(a)).join(" / ");
-    return c.alumnos.find(a => alumnos.includes(a));
-  })();
-
-  if (!clasesPorAlumno[nombreParaTitulo]) clasesPorAlumno[nombreParaTitulo] = [];
-  clasesPorAlumno[nombreParaTitulo].push(c);
+  if (profesor) return; // la profesora no necesita agrupación
+  // comprobar si la clase pertenece a un grupo de hermanos
+  const grupo = gruposHermanos.find(g => g.some(a => c.alumnos.includes(a)) && g.every(a => alumnos.includes(a)));
+  if (grupo) {
+    const key = grupo.join("_").toLowerCase();
+    if (!clasesPorAlumno[key]) clasesPorAlumno[key] = [];
+    clasesPorAlumno[key].push(c);
+  } else {
+    c.alumnos.forEach(a => {
+      if (alumnos.includes(a)) {
+        if (!clasesPorAlumno[a]) clasesPorAlumno[a] = [];
+        clasesPorAlumno[a].push(c);
+      }
+    });
+  }
 });
 
-// render en HTML
+// Render en HTML para alumnos
 const contenedor = document.querySelector("#contenedor");
-for (const [alumnoTitulo, clases] of Object.entries(clasesPorAlumno)) {
-  const titulo = document.createElement("h2");
-  titulo.textContent = "Clase de " + alumnoTitulo;
-  contenedor.appendChild(titulo);
+if (!profesor) {
+  for (const [key, clases] of Object.entries(clasesPorAlumno)) {
+    const titulo = document.createElement("h2");
+    const nombre = key.includes("_") ? "Clase de " + key.split("_").map(n => n.charAt(0).toUpperCase()+n.slice(1)).join(" / ") : "Clase de " + key.charAt(0).toUpperCase()+key.slice(1);
+    titulo.textContent = nombre;
+    contenedor.appendChild(titulo);
 
-  const lista = document.createElement("ul");
-  clases.forEach(c => {
-    const li = document.createElement("li");
-    li.textContent = `${c.date} de ${c.start} a ${c.end}`;
-    lista.appendChild(li);
-  });
-  contenedor.appendChild(lista);
-}
-
-// enlaces por alumno
-const excelLinks = {
-  "Noa": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5vkRS5KOg61InuLhh7cF2sN6yasI1QEi39ATK_IVDxZ-QSeiuXccm3nv7E3mTPcH_v4m_-6qoAmyc/pubhtml",
-  "adriana_jorge": "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0wjJ-o9V82D_zD4CVVMi4YkEayM9jRdnYviLBnuu52npMJ1HRivD8TapY-yZNhGmp4QwmTobbHCAi/pubhtml",
-  "paula_carla": "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0Eqz_OxY2ivgU-9lDrVm25p9Y1a4ykWJAUqtNIo2Y1Ol96X7lJNOSRLduCsHnQknBltJquaV9bf72/pubhtml",
-  "Lea": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRBKbAj1KPCueJHL5kY3aBznD03j2NrN0CRfXPuHGd_pODCwPURF9I0eyZOh8K4oOkiHf980fy1MbXy/pubhtml"
-};
-
-// determinar clave Excel
-let excelKey = null;
-for (const grupo of GRUPOS_HERMANOS) {
-  if (grupo.every(a => alumnos.includes(a)) && alumnos.length === grupo.length) {
-    excelKey = grupo.map(a => a.toLowerCase()).join("_");
-    break;
+    const lista = document.createElement("ul");
+    clases.forEach(c => {
+      const li = document.createElement("li");
+      li.textContent = `${c.date} de ${c.start} a ${c.end}`;
+      lista.appendChild(li);
+    });
+    contenedor.appendChild(lista);
   }
 }
-if (!excelKey && alumnos.length === 1) excelKey = alumnos[0];
+
+// Enlaces Excel
+const excelLinks = {
+  "Noa": "...",
+  "adriana_jorge": "...",
+  "paula_carla": "...",
+  "Lea": "..."
+};
+
+let excelKey;
+if (alumnos.includes("Paula") && alumnos.includes("Carla") && alumnos.length === 2) {
+  excelKey = "paula_carla";
+} else if (alumnos.includes("Adriana") && alumnos.includes("Jorge") && alumnos.length === 2) {
+  excelKey = "adriana_jorge";
+} else {
+  excelKey = alumnos[0];
+}
+
 const excelUrl = excelLinks[excelKey];
 document.querySelector("#excelFrame").src = excelUrl;
 
-// botón estilizado
-if (alumnos.length) {
-  document.getElementById("excelButtonContainer").innerHTML = `
-    <button onclick="showExcel()" 
-            style="
-              background-color: #4CAF50; 
-              color: white; 
-              padding: 8px 16px; 
-              font-size: 14px; 
-              border: none; 
-              border-radius: 6px; 
-              cursor: pointer; 
-              box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-              transition: 0.3s;
-            "
-            onmouseover="this.style.backgroundColor='#45a049'"
-            onmouseout="this.style.backgroundColor='#4CAF50'"
-    >
-      Ver Excel
-    </button>
-  `;
-}
-
-// mostrar Excel
 function showExcel(){
   document.getElementById("excelContent").innerHTML = `
-    <iframe src="${excelUrl}" width="100%" height="600" frameborder="0" style="display:block;"></iframe>
+    <iframe src="${excelLinks[excelKey]}" width="100%" height="600" frameborder="0" style="display:block;"></iframe>
   `;
 }
 
-// utilidades
-function toMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60 + m; }
-function dayNumber(d){ const date=new Date(d); return date.getFullYear()*10000 + (date.getMonth()+1)*100 + date.getDate(); }
-function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
-function startOfWeek(date){ const d=new Date(date); const day=(d.getDay()||7); d.setHours(0,0,0,0); d.setDate(d.getDate()- (day-1)); return d; }
-function fmtDateISO(d){ 
-  const y=d.getFullYear(); 
-  const m=String(d.getMonth()+1).padStart(2,'0'); 
-  const day=String(d.getDate()).padStart(2,'0'); 
-  return `${y}-${m}-${day}`;
-}
-function isToday(d){ const t=new Date(); return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate(); }
-
-// comprueba solapamiento (misma fecha)
-function overlaps(a, b){
-  if(a.date !== b.date) return false;
-  const a0 = toMinutes(a.start), a1 = toMinutes(a.end);
-  const b0 = toMinutes(b.start), b1 = toMinutes(b.end);
-  return a0 < b1 && b0 < a1;
-}
-
-// construye lista de eventos: incluye CLASES (bloques profe) + HORARIOS (franjas alumno)
-function buildEventsForView(){
+// Construir eventos para el calendario
+function buildEventsForView() {
   const events = [];
-
-  // 1) bloques CLASES (siempre se muestran)
-  for(const c of CLASES){
-    const alumnos = [];
-    for(const nombre in HORARIOS){
-      if(HORARIOS[nombre].some(ev => overlaps(ev, c))){
-        alumnos.push(nombre);
-      }
-    }
-    let title = "No disponible";
-    if(profesor){
-      title = alumnos.length ? "Clase de " + alumnos.join(" / ") : "No disponible";
+  for (const c of CLASES) {
+    let title;
+    if (profesor) {
+      title = c.alumnos && c.alumnos.length ? "Clase de " + c.alumnos.join(" / ") : "Clase sin alumnos";
     } else {
-      title = "No disponible";
+      // alumnos solo ven sus clases o combinadas
+      const grupo = gruposHermanos.find(g => g.some(a => c.alumnos.includes(a)) && g.every(a => alumnos.includes(a)));
+      if (grupo) title = "Clase de " + grupo.join(" / ");
+      else if (c.alumnos.some(a => alumnos.includes(a))) title = "Tu clase";
+      else title = "No disponible";
     }
+
     events.push({
       ...c,
       source: 'clase',
-      alumnos,
-      tuClase: false,
+      alumnos: c.alumnos,
+      tuClase: !profesor && c.alumnos.some(a => alumnos.includes(a)),
       title
     });
   }
-
-  // 2) franjas HORARIOS (mostramos según vista)
-  for(const nombre in HORARIOS){
-    for(const h of HORARIOS[nombre]){
-      if(profesor){
-        events.push({
-          ...h,
-          source: 'horario',
-          alumno: nombre,
-          title: "Clase de " + nombre,
-          tuClase: false
-        });
-      } else if(alumno === nombre){
-        events.push({
-          ...h,
-          source: 'horario',
-          alumno: nombre,
-          title: "Tu clase",
-          tuClase: true
-        });
-      }
-    }
-  }
-
   return events;
 }
-
+  
 // settings y DOM
 let dayStart = 8, dayEnd = 22;
 const DAY_NAMES=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
