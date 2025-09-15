@@ -494,7 +494,7 @@
 
       // lea
 
-        { date: "2025-09-15", start: "16:15", end: "17:15" },
+        // { date: "2025-09-15", start: "16:15", end: "17:15" },
         { date: "2025-09-18", start: "17:15", end: "18:15" },
         { date: "2025-09-22", start: "16:15", end: "17:15" },
         { date: "2025-09-26", start: "16:15", end: "17:15" },
@@ -614,7 +614,6 @@
       ],
 
       Lea: [
-        { date: "2025-09-15", start: "16:15", end: "17:15" },
         { date: "2025-09-18", start: "17:15", end: "18:15" },
         { date: "2025-09-22", start: "16:15", end: "17:15" },
         { date: "2025-09-26", start: "16:15", end: "17:15" },
@@ -726,13 +725,13 @@
     };
 
 
-  /* ======= Lógica de render ======= */
+/* ======= Lógica de render ======= */
 const params = new URLSearchParams(window.location.search);
-const alumnoParam = params.get("alumno"); 
-const alumnosSeleccionados = alumnoParam ? alumnoParam.split(",") : [];
-const profesor = alumnosSeleccionados.includes("profesora");
+const alumnoParam = params.get("alumno") || ""; 
+// parseamos lista (trim) y filtramos vacíos
+let selectedAlumnos = alumnoParam.split(",").map(s => s.trim()).filter(Boolean);
 
-// enlaces por alumno
+// enlaces por alumno (reemplaza/ajusta si ya las tenías definidas antes)
 const excelLinks = {
   "Noa": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5vkRS5KOg61InuLhh7cF2sN6yasI1QEi39ATK_IVDxZ-QSeiuXccm3nv7E3mTPcH_v4m_-6qoAmyc/pubhtml",
   "Adriana": "https://docs.google.com/spreadsheets/d/e/2PACX-1vT0wjJ-o9V82D_zD4CVVMi4YkEayM9jRdnYviLBnuu52npMJ1HRivD8TapY-yZNhGmp4QwmTobbHCAi/pubhtml",
@@ -740,11 +739,26 @@ const excelLinks = {
   "Lea": "https://docs.google.com/spreadsheets/d/e/2PACX-1vRBKbAj1KPCueJHL5kY3aBznD03j2NrN0CRfXPuHGd_pODCwPURF9I0eyZOh8K4oOkiHf980fy1MbXy/pubhtml"
 };
 
-// ======= Botones por alumno =======
-if (alumnosSeleccionados.length > 0) {
+// -- intentar resolver nombres con los keys de HORARIOS (case-insensitive)
+function resolveToHorarioKey(name){
+  if(!window.HORARIOS) return name;
+  const keys = Object.keys(HORARIOS);
+  const exact = keys.find(k => k.toLowerCase() === name.toLowerCase());
+  if(exact) return exact;
+  const partial = keys.find(k => k.toLowerCase().startsWith(name.toLowerCase()));
+  if(partial) return partial;
+  return name;
+}
+selectedAlumnos = selectedAlumnos.map(resolveToHorarioKey).filter((v,i,a)=>a.indexOf(v)===i); // únicos
+
+const profesor = selectedAlumnos.includes("profesora");
+
+// ======= Botones / iframe Excel para cada alumno seleccionado =======
+const excelButtonContainer = document.getElementById("excelButtonContainer");
+if(selectedAlumnos.length > 0){
   let botonesHTML = "";
-  alumnosSeleccionados.forEach(nombre => {
-    if (excelLinks[nombre]) {
+  selectedAlumnos.forEach(nombre => {
+    if(excelLinks[nombre]){
       botonesHTML += `
         <button onclick="showExcel('${nombre}')" 
                 style="
@@ -757,74 +771,60 @@ if (alumnosSeleccionados.length > 0) {
                   cursor: pointer; 
                   margin: 5px;
                   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                  transition: 0.3s;
-                "
+                  transition: 0.3s;"
                 onmouseover="this.style.backgroundColor='#45a049'"
                 onmouseout="this.style.backgroundColor='#4CAF50'">
           Ver Excel de ${nombre}
         </button>
       `;
+    } else {
+      botonesHTML += `<button disabled style="margin:5px;opacity:.6">${nombre} (sin Excel)</button>`;
     }
   });
-  document.getElementById("excelButtonContainer").innerHTML = botonesHTML;
+  excelButtonContainer.innerHTML = botonesHTML;
+} else {
+  // si no hay ninguno, limpiar
+  excelButtonContainer.innerHTML = "";
 }
 
-// función que muestra el excel debajo del calendario
+// función que muestra el excel debajo del calendario (recibe nombre)
 function showExcel(nombre){
+  const url = excelLinks[nombre];
+  if(!url){
+    document.getElementById("excelContent").innerHTML = `<div style="padding:10px">No hay Excel para ${nombre}</div>`;
+    return;
+  }
   document.getElementById("excelContent").innerHTML = `
-    <iframe src="${excelLinks[nombre]}" width="100%" height="600" frameborder="0" style="display:block;"></iframe>
+    <iframe src="${url}" width="100%" height="600" frameborder="0" style="display:block;"></iframe>
   `;
 }
 
-// utilidades
-function toMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60 + m; }
-function dayNumber(d){ const date=new Date(d); return date.getFullYear()*10000 + (date.getMonth()+1)*100 + date.getDate(); }
-function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
-function startOfWeek(date){ const d=new Date(date); const day=(d.getDay()||7); d.setHours(0,0,0,0); d.setDate(d.getDate()- (day-1)); return d; }
-function fmtDateISO(d){ 
-  const y=d.getFullYear(); 
-  const m=String(d.getMonth()+1).padStart(2,'0'); 
-  const day=String(d.getDate()).padStart(2,'0'); 
-  return `${y}-${m}-${day}`;
-}
-function isToday(d){ const t=new Date(); return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate(); }
-
-// comprueba solapamiento (misma fecha)
-function overlaps(a, b){
-  if(a.date !== b.date) return false;
-  const a0 = toMinutes(a.start), a1 = toMinutes(a.end);
-  const b0 = toMinutes(b.start), b1 = toMinutes(b.end);
-  return a0 < b1 && b0 < a1;
-}
-
-// construye lista de eventos: incluye CLASES (bloques profe) + HORARIOS (franjas alumno)
+// ======= buildEventsForView corregida para múltiples alumnos =======
 function buildEventsForView(){
   const events = [];
 
-  // 1) bloques CLASES (siempre se muestran)
+  // 1) bloques CLASES (mostrar qué alumnos seleccionados están en cada bloque)
   for(const c of CLASES){
-    const alumnos = [];
+    const alumnosEnClase = [];
     for(const nombre in HORARIOS){
       if(HORARIOS[nombre].some(ev => overlaps(ev, c))){
-        alumnos.push(nombre);
+        // si es vista de profesora, añadimos todos; si no, sólo los seleccionados
+        if(profesor) alumnosEnClase.push(nombre);
+        else if(selectedAlumnos.includes(nombre)) alumnosEnClase.push(nombre);
       }
     }
     let title = "No disponible";
-    if(profesor){
-      title = alumnos.length ? "Clase de " + alumnos.join(" / ") : "No disponible";
-    } else {
-      title = "No disponible";
-    }
+    if(alumnosEnClase.length) title = "Clase de " + alumnosEnClase.join(" / ");
     events.push({
       ...c,
       source: 'clase',
-      alumnos,
+      alumnos: alumnosEnClase,
       tuClase: false,
       title
     });
   }
 
-  // 2) franjas HORARIOS (mostramos según vista)
+  // 2) franjas HORARIOS (mostramos según vista) -> incluimos todas las franjas de los alumnos seleccionados
   for(const nombre in HORARIOS){
     for(const h of HORARIOS[nombre]){
       if(profesor){
@@ -835,7 +835,7 @@ function buildEventsForView(){
           title: "Clase de " + nombre,
           tuClase: false
         });
-      } else if(alumno === nombre){
+      } else if(selectedAlumnos.includes(nombre)){
         events.push({
           ...h,
           source: 'horario',
