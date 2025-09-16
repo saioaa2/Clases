@@ -814,29 +814,35 @@ function buildEventsForView(){
   }
 
   // 2) franjas HORARIOS (mostramos según vista)
-  for(const nombre in HORARIOS){
-    for(const h of HORARIOS[nombre]){
-      if(profesor){
-        events.push({
-          ...h,
-          source: 'horario',
-           alumno: h.nota ? h.nota : undefined,
-          title: "Clase de " + nombre,
-          tuClase: false
-        });
-      } else if(alumno === nombre){
-        events.push({
+  for (const nombre in HORARIOS) {
+  for (const h of HORARIOS[nombre]) {
+    if (profesor) {
+      const event = {
         ...h,
         source: 'horario',
-        alumno: h.nota ? h.nota : undefined,
-        title: "Tu clase" + (h.nota ? " (" + h.nota + ")" : ""),
-        tuClase: profesor ? false : alumno === nombre
-        });
+        title: "Clase de " + nombre,
+        tuClase: false
+      };
+      if (h.nota) {
+        event.alumno = h.nota;
       }
+      events.push(event);
+    } else if (alumno === nombre) {
+      const event = {
+        ...h,
+        source: 'horario',
+        title: "Tu clase" + (h.nota ? " (" + h.nota + ")" : ""),
+        tuClase: true
+      };
+      if (h.nota) {
+        event.alumno = h.nota;
+      }
+      events.push(event);
     }
   }
+}
 
-  return events;
+return events;
 }
 
 // settings y DOM
