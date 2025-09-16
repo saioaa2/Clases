@@ -820,7 +820,7 @@ function buildEventsForView(){
         events.push({
           ...h,
           source: 'horario',
-          alumno: nombre,
+           alumno: h.nota ? h.nota : undefined,
           title: "Clase de " + nombre,
           tuClase: false
         });
@@ -828,7 +828,7 @@ function buildEventsForView(){
         events.push({
         ...h,
         source: 'horario',
-        alumno: nombre,
+        alumno: h.nota ? h.nota : undefined,
         title: "Tu clase" + (h.nota ? " (" + h.nota + ")" : ""),
         tuClase: profesor ? false : alumno === nombre
         });
